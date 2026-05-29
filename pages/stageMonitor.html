@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Stage Monitor - ProPresenter</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background-color: #000000;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Top Box - Current Slide */
+        .current-slide-box {
+            border: 3px solid #ffd700;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .main-text {
+            font-size: 48px;
+            font-weight: bold;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .label-current {
+            font-size: 16px;
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Middle Box - Next Slide */
+        .next-slide-box {
+            border: 2px solid #ffd700;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sub-text {
+            font-size: 36px;
+            color: #ffd700;
+            font-weight: bold;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .label-next {
+            font-size: 14px;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid #ffd700;
+            border-radius: 12px;
+            background: #0a0a0a;
+        }
+
+        .stage-message {
+            padding: 15px 20px;
+            font-size: 28px;
+            font-weight: bold;
+            flex: 1;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .time {
+            background-color: #000000;
+            color: #ffd700;
+            padding: 15px 25px;
+            font-size: 28px;
+            font-weight: bold;
+            border-left: 2px solid #ffd700;
+            font-family: monospace;
+            white-space: nowrap;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            z-index: 1000;
+        }
+
+        .status-connected {
+            color: #00ff00;
+        }
+
+        .status-disconnected {
+            color: #ff4444;
+        }
+
+        /* Error Overlay */
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-card {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            border: 1px solid #ff4444;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 450px;
+        }
+
+        .error-card h2 {
+            color: #ff4444;
+            margin-bottom: 20px;
+        }
+
+        .error-card button {
+            padding: 12px 25px;
+            background: #ffd700;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .main-text { font-size: 28px; }
+            .sub-text { font-size: 22px; }
+            .stage-message { font-size: 18px; }
+            .time { font-size: 18px; }
+        }
+
+        .loading-dots::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainContainer">
+    <div class="current-slide-box">
+        <!-- <div class="label-current"><i class="fas fa-play-circle"></i> CURRENT SLIDE</div> -->
+        <div class="main-text" id="currentSlideText">Connecting<span class="loading-dots"></span></div>
+    </div>
+
+    <div class="next-slide-box">
+        <!-- <div class="label-next"><i class="fas fa-forward"></i> NEXT SLIDE</div> -->
+        <div class="sub-text" id="nextSlideText">--</div>
+    </div>
+
+    <div class="footer">
+        <div class="stage-message" id="stageMessage"><i class="fas fa-comment"></i> No message</div>
+        <div class="time" id="time">--:--</div>
+    </div>
+</div>
+
+<div class="connection-status">
+    <span id="connectionStatusText" class="status-disconnected">● Disconnected</span>
+</div>
+
+<div class="error-overlay" id="errorOverlay">
+    <div class="error-card">
+        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff4444; margin-bottom: 20px;"></i>
+        <h2>Connection Failed</h2>
+        <p id="errorMessage" style="color: #aaa;">Unable to connect to ProPresenter</p>
+        <button onclick="window.close()"><i class="fas fa-times"></i> Close</button>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+    let ws = null;
+    let reconnectAttempts = 0;
+    let maxReconnectAttempts = 10;
+    let currentConfig = { ip: '', port: '', password: '' };
+    let manualDisconnect = false;
+
+    // Get configuration from URL parameters
+    function getConfigFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        let ip = urlParams.get('ip');
+        let port = urlParams.get('port');
+        let password = urlParams.get('password');
+        
+        // If not in URL, try localStorage (from main app)
+        if (!ip) ip = localStorage.getItem('proPresenterIP');
+        if (!port) port = localStorage.getItem('proPresenterPort');
+        if (!password) password = localStorage.getItem('proPresenterPassword');
+        
+        // Default fallback
+        if (!ip) ip = 'localhost';
+        if (!port) port = '50001';
+        if (!password) password = 'stage';
+        
+        return { ip, port, password: password || '' };
+    }
+
+    function updateElementContent(element, newContent, isHtml = false) {
+        if (!element) return;
+        element.style.transition = 'opacity 0.3s ease';
+        element.style.opacity = '0';
+        setTimeout(() => {
+            if (isHtml) element.innerHTML = newContent;
+            else element.textContent = newContent;
+            element.style.opacity = '1';
+        }, 150);
+    }
+
+    function setCurrent(text) {
+        if (!text || text.trim() === '') text = '— No Content —';
+        updateElementContent(document.getElementById('currentSlideText'), text);
+    }
+
+    function setNext(text) {
+        if (!text || text.trim() === '') text = '— No Content —';
+        updateElementContent(document.getElementById('nextSlideText'), text);
+    }
+
+    function setStageMessage(message) {
+        const stageMessageDiv = document.getElementById('stageMessage');
+        if (!message || message.trim() === '') {
+            updateElementContent(stageMessageDiv, '<i class="fas fa-comment"></i> No message', true);
+        } else {
+            updateElementContent(stageMessageDiv, `<i class="fas fa-comment"></i> ${escapeHtml(message)}`, true);
+        }
+    }
+
+    function updateTime() {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        document.getElementById('time').textContent = `${hours}:${minutes} ${ampm}`;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function processMessage(message) {
+  //console.log(message);
+  if (message.acn == "ath") {
+    if (message.ath == true) {
+      console.log("Authentication succeeded");
+    } else {
+      console.log("Authentication failed: " + message.err);
+    }
+  } else if (message.acn == "fv") {
+    for(a in message.ary) {
+      if (message.ary[a].acn == "cs") {
+        setCurrent(message.ary[a].txt);
+      } else if (message.ary[a].acn == "ns") {
+        setNext(message.ary[a].txt);
+      }
+    }
+  }
+}
+
+    // function processMessage(data) {
+    //     console.log('Received:', data);
+        
+    //     if (data) {
+    //         if (data.currentText !== undefined) setCurrent(data.currentText);
+    //         else if (data.current_slide !== undefined) setCurrent(data.current_slide);
+    //         else if (data.text !== undefined && data.type === 'current') setCurrent(data.text);
+    //         else if (data.current) setCurrent(data.current);
+            
+    //         if (data.nextText !== undefined) setNext(data.nextText);
+    //         else if (data.next_slide !== undefined) setNext(data.next_slide);
+    //         else if (data.text !== undefined && data.type === 'next') setNext(data.text);
+    //         else if (data.next) setNext(data.next);
+            
+    //         if (data.message !== undefined) setStageMessage(data.message);
+    //         else if (data.stageMessage !== undefined) setStageMessage(data.stageMessage);
+    //         else if (data.stage_message !== undefined) setStageMessage(data.stage_message);
+            
+    //         if (data.stageDisplay) {
+    //             if (data.stageDisplay.current) setCurrent(data.stageDisplay.current);
+    //             if (data.stageDisplay.next) setNext(data.stageDisplay.next);
+    //             if (data.stageDisplay.message) setStageMessage(data.stageDisplay.message);
+    //         }
+    //     }
+    // }
+
+    function updateConnectionStatus(connected) {
+        const statusText = document.getElementById('connectionStatusText');
+        if (connected) {
+            statusText.innerHTML = '● Connected';
+            statusText.className = 'status-connected';
+            document.getElementById('errorOverlay').style.display = 'none';
+        } else {
+            statusText.innerHTML = '● Disconnected';
+            statusText.className = 'status-disconnected';
+        }
+    }
+
+    function showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('errorOverlay').style.display = 'flex';
+        updateConnectionStatus(false);
+    }
+
+    function connect() {
+        const wsUrl = `ws://${currentConfig.ip}:${currentConfig.port}/stagedisplay`;
+        console.log('Connecting to:', wsUrl);
+        
+        try {
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connection established');
+                updateConnectionStatus(true);
+                reconnectAttempts = 0;
+                setCurrent('Connected - Waiting for slides...');
+                setNext('--');
+                
+                if (currentConfig.password) {
+                    const authMsg = JSON.stringify({
+                        pwd: currentConfig.password,
+                        ptl: 610,
+                        acn: "ath"
+                    });
+                    ws.send(authMsg);
+                }
+            };
+            
+            ws.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    processMessage(data);
+                } catch (err) {
+                    console.log('Raw message:', e.data);
+                    if (e.data && typeof e.data === 'string') {
+                        try {
+                            const parsed = JSON.parse(e.data);
+                            processMessage(parsed);
+                        } catch {
+                            setCurrent(e.data);
+                        }
+                    }
+                }
+            };
+            
+            ws.onclose = function(e) {
+                console.log('WebSocket closed:', e.reason);
+                if (!manualDisconnect) {
+                    updateConnectionStatus(false);
+                    setCurrent('Connection lost - Reconnecting...');
+                    
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                        setTimeout(connect, delay);
+                    } else {
+                        showError('Connection lost. Please refresh the page.');
+                    }
+                }
+            };
+            
+            ws.onerror = function(err) {
+                console.error('WebSocket error:', err);
+                if (!manualDisconnect) {
+                    updateConnectionStatus(false);
+                    showError(`Failed to connect to ${currentConfig.ip}:${currentConfig.port}`);
+                }
+            };
+        } catch (err) {
+            console.error('Failed to create WebSocket:', err);
+            showError('Failed to connect: ' + err.message);
+        }
+    }
+
+    function init() {
+        currentConfig = getConfigFromUrl();
+        console.log('Config loaded:', currentConfig);
+        
+        if (currentConfig.ip && currentConfig.port) {
+            connect();
+        } else {
+            showError('No connection configuration found.');
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

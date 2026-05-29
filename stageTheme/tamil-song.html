@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stage Display</title>
+
+<style>
+    body {
+        margin: 0;
+        background-color: black;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+
+    .container {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .box {
+        border: 2px solid yellow;
+        padding: 15px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .main-text {
+        font-size: 40px;
+        font-weight: bold;
+    }
+
+    .sub-text {
+        font-size: 36px;
+        color: yellow;
+        font-weight: bold;
+    }
+
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 2px solid yellow;
+    }
+
+    .stage-message {
+        padding: 10px;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .time {
+        background-color: black;
+        color: yellow;
+        padding: 10px 20px;
+        font-size: 28px;
+        font-weight: bold;
+        border-left: 2px solid yellow;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Top Box -->
+    <div class="box main-text" id="title">
+        ஆராதனை<br>நடந்து வருகிறது
+    </div>
+
+    <!-- Middle Box -->
+    <div class="box sub-text" id="subtitle">
+        நேரம் நடந்து வருகிறது
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="stage-message" id="stageMessage">
+            Stage Message
+        </div>
+        <div class="time" id="time">
+            1:23 PM
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

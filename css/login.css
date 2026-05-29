@@ -1,0 +1,145 @@
+/* Background handled here (cleaner than inline) */
+.bg-image {
+    background-image: url('../src/background-image.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Glass card */
+.login-card {
+    margin-top: -300px;
+    width: 360px;
+    padding: 28px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    transition: transform 0.3s ease;
+}
+
+.login-card:hover {
+    transform: translateY(-5px);
+}
+
+.form-control {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-control:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #ff7a18;
+    box-shadow: 0 0 0 3px rgba(255, 122, 24, 0.2);
+    color: #fff;
+    outline: none;
+}
+
+.btn-connect {
+    background: linear-gradient(135deg, #ff7a18, #ff9a44);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-connect:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 122, 24, 0.3);
+}
+
+.btn-connect:active {
+    transform: translateY(0);
+}
+
+/* Form label styling */
+.form-label {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-card {
+        width: 320px;
+        padding: 24px;
+        margin-right: 20px !important;
+    }
+    
+    .container-fluid {
+        justify-content: center !important;
+    }
+    
+    .login-card {
+        margin-right: 0 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        width: 90%;
+        margin: 0 auto;
+    }
+}
+
+/* Toast notification styles */
+.custom-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10000;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}

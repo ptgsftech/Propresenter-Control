@@ -1,0 +1,159 @@
+{
+  "title": "ProPresenter Remote Control",
+
+  "connection": {
+    "connect": "Connect",
+    "connecting": "Connecting...",
+    "connected": "Connected to ProPresenter",
+    "disconnected": "Disconnected",
+    "failed": "Failed to connect"
+  },
+
+  "screens": {
+    "audience": "Audience",
+    "stage": "Stage",
+    "on": "ON",
+    "off": "OFF"
+  },
+
+  "nav": {
+    "library": "Library",
+    "playlist": "Playlist",
+    "controls": "Controls"
+  },
+
+  "cards": {
+    "looks": "Looks",
+    "capture": "Capture",
+    "presentation": "Presentation",
+    "media": "Media",
+    "audio": "Audio",
+    "message": "Message",
+    "props": "Props",
+    "clear": "Clear",
+    "timers": "Timers",
+    "macros": "Macros"
+  },
+
+  "buttons": {
+    "start": "Start",
+    "stop": "Stop",
+    "next": "Next",
+    "previous": "Previous",
+    "clear": "Clear",
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset",
+    "show": "Show",
+    "list": "List",
+    "close": "Close"
+  },
+
+  "capture": {
+    "start": "Start Capture",
+    "stop": "Stop Capture",
+    "recording": "Recording...",
+    "stopped": "Stopped",
+    "idle": "Idle"
+  },
+
+  "presentation": {
+    "start": "Start",
+    "next": "Next",
+    "previous": "Previous",
+    "clear": "Clear",
+    "active": "Active Presentation",
+    "no_slide": "No slide selected",
+    "slide_hint": "Click on a slide from library to preview",
+    "slide_triggered": "Triggered slide"
+  },
+
+  "media": {
+    "play": "Play",
+    "next": "Next",
+    "previous": "Previous",
+    "stop": "Stop"
+  },
+
+  "audio": {
+    "play": "Play",
+    "next": "Next",
+    "previous": "Previous",
+    "stop": "Stop"
+  },
+
+  "message": {
+    "placeholder": "Enter message...",
+    "show": "Show",
+    "clear": "Clear",
+    "sent": "Message shown",
+    "error": "Failed to send message"
+  },
+
+  "props": {
+    "list": "List Props",
+    "clear": "Clear Props"
+  },
+
+  "clear": {
+    "announcements": "Announcements",
+    "all_layers": "All Layers",
+    "success": "All layers cleared"
+  },
+
+  "timers": {
+    "start": "Start Timer",
+    "stop": "Stop Timer",
+    "reset": "Reset Timer",
+    "label": "Timer"
+  },
+
+  "macros": {
+    "loading": "Loading macros...",
+    "empty": "No macros found"
+  },
+
+  "looks": {
+    "loading": "Loading looks...",
+    "empty": "No looks found"
+  },
+
+  "library": {
+    "title": "Library Manager",
+    "libraries": "Libraries",
+    "contents": "Library Contents",
+    "loading": "Loading libraries...",
+    "empty": "No libraries found",
+    "select_hint": "Select a library to view contents",
+    "no_items": "No items found",
+    "selected": "Selected"
+  },
+
+  "playlist": {
+    "title": "Playlist Manager",
+    "playlists": "Playlists",
+    "contents": "Playlist Contents",
+    "loading": "Loading playlists...",
+    "empty": "No playlists found",
+    "select_hint": "Select a playlist to view contents",
+    "no_items": "No items found",
+    "selected": "Selected"
+  },
+
+  "status": {
+    "current": "Current Status / Presentation Display",
+    "timeline": "Timeline",
+    "loading": "Loading...",
+    "no_preview": "No preview",
+    "error": "Error"
+  },
+
+  "general": {
+    "status": "Status",
+    "success": "Success",
+    "error": "Error",
+    "not_connected": "Not connected",
+    "command_executed": "Command executed",
+    "enter_message": "Enter a message"
+  }
+}

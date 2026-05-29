@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ProPresenter Remote Control</title>
+    <link rel="icon" type="image/jpg" href="/src/Propresenter.jpg">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- Header Area -->
+        <div class="main-header">
+            <div class="bg-dark px-4 py-3 border-bottom border-secondary">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-4">
+                        <i class="fas fa-chalkboard-user text-primary me-2"></i>
+                        <span class="h5 mb-0 text-white fw-semibold">ProPresenter Remote</span>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex justify-content-end align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-white">Audience</span>
+                                <div class="screen-btn-small-header inactive" id="audienceBtn"><i class="fas fa-tv"></i>
+                                </div>
+                                <span class="badge bg-danger" id="audienceStatus">OFF</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-white">Stage</span>
+                                <div class="screen-btn-small-header inactive" id="stageBtn"><i
+                                        class="fas fa-desktop"></i></div>
+                                <span class="badge bg-danger" id="stageStatus">OFF</span>
+                            </div>
+
+                            <!-- NEW: Stage Monitor Button with QR Code -->
+                            <button class="btn btn-outline-warning btn-sm" id="stageMonitorBtn"
+                                title="Open Stage Monitor">
+                                <i class="fas fa-tv"></i> Monitor
+                            </button>
+
+                            <div class="status-dot" id="statusDot"></div>
+                            <span id="connectionText" class="text-white-50 small">Disconnected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main flex layout: LEFT (FIXED) + MIDDLE (SCROLLABLE) + RIGHT (FIXED) -->
+        <div class="dashboard-layout">
+            <!-- LEFT SIDEBAR - Selected Container & Contents -->
+            <div class="left-sidebar">
+                <div class="card-custom card-full-height">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-folder-open me-2"></i> <span id="selectedContainerName">Select a
+                                library/playlist</span></span>
+                        <span class="badge bg-secondary" id="itemsCount">0</span>
+                    </div>
+                    <div class="card-content-wrapper flex-grow-1">
+                        <div id="contentsList">
+                            <div class="text-center text-muted py-3 small">Click library or playlist to view items</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-custom">
+                    <div class="card-header-custom"><i class="fas fa-info-circle me-2"></i> Info</div>
+                    <div class="card-content-wrapper">
+                        <div class="small text-secondary">Select any library/playlist from right panel → contents appear
+                            here. Click on a slide to trigger or preview.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE SECTION (SCROLLABLE ONLY) -->
+            <div class="middle-scroll-area">
+                <!-- Row 1: 5 cards - Each card takes equal width using col -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6 col-lg">
+                        <div class="card-fixed">
+                            <div class="card-header-custom"><i class="fas fa-palette me-2"></i> Looks</div>
+                            <div class="card-content-fixed" id="looksList">Loading looks...</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg">
+                        <div class="card-fixed">
+                            <div class="card-header-custom"><i class="fas fa-video me-2"></i> Capture</div>
+                            <div class="card-content-fixed">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-success btn-custom" id="startCaptureBtn"><i
+                                            class="fas fa-play"></i> Start</button>
+                                    <button class="btn btn-danger btn-custom" id="stopCaptureBtn"><i
+                                            class="fas fa-stop"></i> Stop</button>
+                                </div>
+                                <div class="mt-2 text-center text-muted small" id="captureStatus">Idle</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg">
+                        <div class="card-fixed">
+                            <div class="card-header-custom"><i class="fas fa-presentation-screen me-2"></i> Presentation
+                            </div>
+                            <div class="card-content-fixed">
+                                <div class="row g-2">
+                                    <div class="col-6"><button class="btn btn-primary btn-custom w-100 btn-sm"
+                                            id="startPresentationBtn"><i class="fas fa-play"></i> Start</button></div>
+                                    <div class="col-6"><button class="btn btn-success btn-custom w-100 btn-sm"
+                                            id="nextSlideBtn"><i class="fas fa-forward"></i> Next</button></div>
+                                    <div class="col-6"><button class="btn btn-warning btn-custom w-100 btn-sm"
+                                            id="prevSlideBtn"><i class="fas fa-backward"></i> Prev</button></div>
+                                    <div class="col-6"><button class="btn btn-danger btn-custom w-100 btn-sm"
+                                            id="clearSlideBtn"><i class="fas fa-trash-alt"></i> Clear</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg">
+                        <div class="card-fixed">
+                            <div class="card-header-custom"><i class="fas fa-photo-film me-2"></i> Media</div>
+                            <div class="card-content-fixed">
+                                <div class="row g-2">
+                                    <div class="col-6"><button class="btn btn-primary btn-custom w-100 btn-sm"
+                                            id="playMediaBtn"><i class="fas fa-play"></i> Play</button></div>
+                                    <div class="col-6"><button class="btn btn-success btn-custom w-100 btn-sm"
+                                            id="nextMediaBtn"><i class="fas fa-step-forward"></i> Next</button></div>
+                                    <div class="col-6"><button class="btn btn-warning btn-custom w-100 btn-sm"
+                                            id="prevMediaBtn"><i class="fas fa-step-backward"></i> Prev</button></div>
+                                    <div class="col-6"><button class="btn btn-danger btn-custom w-100 btn-sm"
+                                            id="stopMediaBtn"><i class="fas fa-stop"></i> Stop</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg">
+                        <div class="card-fixed">
+                            <div class="card-header-custom"><i class="fas fa-clock me-2"></i> System Time</div>
+                            <div class="card-content-fixed text-center">
+                                <div class="system-time-display">
+                                    <div class="time-large" id="systemTime">--:--:--</div>
+                                    <div class="date-small text-muted" id="systemDate">--/--/----</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Macro + Playlist + Stage Controls - Fully Responsive -->
+                <div class="custom-row-2">
+                    <!-- Macro Card - Responsive width -->
+                    <div class="macro-fixed-card">
+                        <div class="card-large-height">
+                            <div class="card-header-custom"><i class="fas fa-code-branch me-2"></i> Macros</div>
+                            <div class="card-content-fixed-large" id="macrosList">Loading macros...</div>
+                        </div>
+                    </div>
+
+                    <!-- Playlist Card - Takes remaining space -->
+                    <div class="playlist-flex-card">
+                        <div class="card-large-height">
+                            <div class="card-header-custom"><i class="fas fa-list me-2"></i> Playlist Quick Actions
+                            </div>
+                            <div class="card-content-fixed-large" id="playlistQuickList">Loading playlists...</div>
+                        </div>
+                    </div>
+
+                    <!-- Stage Controls Column -->
+                    <div class="stage-flex-card">
+                        <!-- Stage Control Card -->
+                        <div class="card-medium-height stage-control-card">
+                            <div class="card-header-custom"><i class="fas fa-stage me-2"></i> Stage Control</div>
+                            <div class="stage-control-content">
+                                <div class="stage-screen-section">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span><i class="fas fa-desktop text-info"></i> Stage Screen</span>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                            id="stageScreenBtn">Toggle</button>
+                                    </div>
+                                    <div class="text-center">
+                                        <span class="badge bg-secondary" id="stageScreenStatus">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage Message Card - No Scrollbar -->
+                        <div class="card-medium-height mt-3 stage-message-card">
+                            <div class="card-header-custom"><i class="fas fa-message text-warning me-2"></i> Stage
+                                Message</div>
+                            <div class="stage-message-content">
+                                <textarea class="form-control-custom stage-message-textarea" id="stageMessageText"
+                                    placeholder="Type your stage message here..." rows="2"></textarea>
+
+                                <div class="stage-message-buttons">
+                                    <button class="btn btn-danger btn-sm" id="clearStageMessageBtn">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" id="sendStageMessageBtn">
+                                        <i class="fas fa-paper-plane me-1"></i> Send
+                                    </button>
+                                </div>
+
+                                <div class="stage-message-status" id="stageMessageStatus">No active message</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Third Row: Presentation Display -->
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="card-full" id="statusPanel">
+                            <div class="card-header-custom"><i class="fas fa-info-circle me-2"></i> Presentation Display
+                            </div>
+                            <div class="card-content-full p-3">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                    <div><strong><i class="fas fa-layer-group"></i> Active Presentation:</strong> <span
+                                            class="text-info ms-2" id="activePresentation">-</span></div>
+                                    <div class="timeline-controls-inline mt-2 mt-sm-0">
+                                        <span class="text-muted me-2"><i class="fas fa-clock"></i> Timeline:</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-secondary btn-custom" id="timelinePlayBtn"><i
+                                                    class="fas fa-play"></i></button>
+                                            <button class="btn btn-secondary btn-custom" id="timelinePauseBtn"><i
+                                                    class="fas fa-pause"></i></button>
+                                            <button class="btn btn-secondary btn-custom" id="timelineRewindBtn"><i
+                                                    class="fas fa-backward-fast"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3"><strong><i class="fas fa-sliders-h"></i> Current Slide:</strong> <span
+                                        class="text-info ms-2" id="currentSlide">-</span></div>
+                                <div class="slide-display-container">
+                                    <div class="slide-image-wrapper" id="slideImageWrapper" style="display: none;">
+                                        <img id="currentSlideImage" class="slide-image" alt="Current Slide">
+                                    </div>
+                                    <div id="slidePlaceholder" class="slide-placeholder">
+                                        <i class="fas fa-image fa-4x mb-3"></i>
+                                        <p class="mb-0">No slide selected</p>
+                                        <small class="text-muted">Click on a slide from left panel</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR - Library and Playlist Lists -->
+            <div class="right-sidebar">
+                <div class="card-custom card-full-height">
+                    <div class="card-header-custom"><i class="fas fa-book me-2"></i> LIBRARY</div>
+                    <div class="card-content-wrapper flex-grow-1">
+                        <div id="libraryList">Loading libraries...</div>
+                    </div>
+                </div>
+                <div class="card-custom card-full-height">
+                    <div class="card-header-custom"><i class="fas fa-list me-2"></i> PLAYLIST</div>
+                    <div class="card-content-wrapper flex-grow-1">
+                        <div id="playlistList">Loading playlists...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage Monitor QR Code Modal -->
+    <div class="modal fade" id="stageMonitorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">
+                        <i class="fas fa-qrcode me-2 text-warning"></i>Stage Monitor Access
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-3">
+                        <p class="text-muted small">Scan QR code or use the URL below to access Stage Monitor on another
+                            device</p>
+                        <div id="qrcode" class="d-flex justify-content-center mb-3"
+                            style="background: white; padding: 10px; border-radius: 10px;"></div>
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control-custom" id="stageMonitorUrl" readonly
+                                style="font-size: 12px;">
+                            <button class="btn btn-outline-secondary" onclick="copyStageMonitorUrl()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <a href="#" id="stageMonitorLink" class="btn btn-outline-warning btn-sm w-100" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Open Stage Monitor
+                        </a>
+                        <hr class="border-secondary my-3">
+                        <div class="small text-muted">
+                            <i class="fas fa-info-circle"></i> Make sure both devices are on the same network
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</body>
+
+</html>
