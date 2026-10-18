@@ -1,0 +1,470 @@
+/* ==========================================================================
+   PROPRESENTER CONTROLLER RESPONSIVE LAYOUT SYSTEM - layout.css
+   Full Multi-Device Compatibility with Bootstrap 5
+   ========================================================================== */
+
+/* Main Application Shell */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-canvas);
+}
+
+/* Master Top Navigation Bar */
+.master-header {
+  min-height: 56px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-logo-img {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+.brand-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.header-center-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Secondary Control Strip (Quick Clear & Looks) */
+.quick-clear-bar {
+  background: rgba(18, 20, 26, 0.98);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.clear-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.looks-scroll-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 2px;
+  flex-grow: 1;
+  justify-content: flex-end;
+}
+
+/* Content Viewport Grid */
+.workspace-viewport {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 1. Left Sidebar: 2-Tier Split (Library 75% / Playlist 25%) */
+.col-sidebar-left {
+  width: 320px;
+  flex: 0 0 320px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  transition: transform var(--transition-normal);
+}
+
+.sidebar-section-tier {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.sidebar-tier-library {
+  flex: 0 0 75%;
+  height: 75%;
+  max-height: 75%;
+  min-height: 0;
+}
+
+.sidebar-tier-playlist {
+  flex: 0 0 25%;
+  height: 25%;
+  max-height: 25%;
+  min-height: 0;
+  border-bottom: none;
+}
+
+.tier-header {
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.tier-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.tier-scroll-list {
+  flex: 1 1 0;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+/* 2. Center Workspace: Screens Monitor & Slide Cues */
+.col-center-workspace {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  background: var(--bg-canvas);
+  padding: 10px 12px;
+  gap: 10px;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* Row 1: Tactical Clears & Screen Controls Bar */
+#middleRow1 {
+  flex: 0 0 auto;
+}
+
+/* View 1: Presentation Section (Slide Deck Cues - Show Mode) - Full View */
+#cuesSectionWrapper {
+  flex: 1 1 0;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  gap: 10px;
+}
+
+/* View 2: Bible Presenter Section (Bible Mode) - Full View */
+#middleRow3Bible {
+  flex: 1 1 0;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  gap: 10px;
+}
+
+/* Explicit View Switcher Visibility Control */
+.workspace-view-hidden {
+  display: none !important;
+}
+
+/* 3. Right Sidebar: Screen Dropdown + 6 Tabs Drawer */
+.col-sidebar-right {
+  width: 390px;
+  flex: 0 0 390px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px;
+  gap: 10px;
+  height: 100%;
+}
+
+/* Mobile Bottom Navigation (Hidden on desktop) */
+.mobile-nav-bar {
+  display: none;
+  height: 52px;
+  background: var(--bg-surface-elevated);
+  border-top: 1px solid var(--border-subtle);
+  align-items: center;
+  justify-content: space-around;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+.mobile-nav-item i {
+  font-size: 16px;
+}
+.mobile-nav-item.active {
+  color: var(--accent-orange);
+}
+
+/* ==========================================================================
+   Responsive Breakpoints & Multi-Device Optimization
+   ========================================================================== */
+
+/* Universal Touch & Safe Area Support */
+:root {
+  --mobile-nav-height: 52px;
+}
+
+/* Sidebar Backdrop for Mobile Drawers */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+}
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 1. Large Laptops & Desktops (1200px - 1400px) */
+@media (max-width: 1400px) {
+  .col-sidebar-left {
+    width: 280px;
+    flex: 0 0 280px;
+  }
+  .col-sidebar-right {
+    width: 340px;
+    flex: 0 0 340px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .col-sidebar-left {
+    width: 250px;
+    flex: 0 0 250px;
+  }
+  .col-sidebar-right {
+    width: 310px;
+    flex: 0 0 310px;
+  }
+}
+
+/* 2. Tablets & Small Laptops (768px - 992px) */
+@media (max-width: 992px) {
+  .col-sidebar-left {
+    position: fixed;
+    top: 52px;
+    bottom: 0;
+    left: 0;
+    width: 320px;
+    max-width: 85vw;
+    z-index: 1050;
+    box-shadow: 12px 0 32px rgba(0, 0, 0, 0.75);
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+  .col-sidebar-left.open {
+    transform: translateX(0);
+  }
+
+  .col-sidebar-right {
+    position: fixed;
+    top: 52px;
+    bottom: 0;
+    right: 0;
+    width: 360px;
+    max-width: 90vw;
+    z-index: 1050;
+    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.75);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+  }
+  .col-sidebar-right.open {
+    transform: translateX(0);
+  }
+
+  .col-center-workspace {
+    width: 100%;
+    flex: 1 1 100%;
+    max-height: calc(100vh - 52px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #cuesSectionWrapper,
+  #middleRow3Bible {
+    min-height: 420px;
+  }
+}
+
+/* 3. Mobile Phones (<= 768px) */
+@media (max-width: 768px) {
+  .master-header {
+    padding: 0 10px;
+    height: 52px;
+  }
+  .brand-title span {
+    display: none;
+  }
+
+  /* Viewport adjusts for Mobile Bottom Navigation Bar */
+  .workspace-viewport {
+    flex-direction: row;
+    height: calc(100vh - 52px - var(--mobile-nav-height));
+    overflow: hidden;
+  }
+
+  .col-sidebar-left {
+    bottom: var(--mobile-nav-height);
+  }
+  .col-sidebar-right {
+    bottom: var(--mobile-nav-height);
+  }
+
+  .mobile-nav-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--mobile-nav-height);
+    z-index: 1030;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.5);
+  }
+
+  .col-center-workspace {
+    padding: 8px;
+    gap: 8px;
+    max-height: calc(100vh - 52px - var(--mobile-nav-height));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #cuesSectionWrapper,
+  #middleRow3Bible {
+    height: auto;
+    min-height: calc(100vh - 220px);
+    max-height: none;
+    flex: 1;
+    padding: 10px;
+  }
+
+  .presentation-header {
+    padding: 8px 10px;
+  }
+
+  .quick-clear-bar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+}
+
+/* 4. Compact Mobile Devices (<= 576px) */
+@media (max-width: 576px) {
+  .master-header {
+    min-height: 52px;
+    height: auto;
+    padding: 3px 6px;
+    gap: 6px;
+  }
+  .brand-title {
+    font-size: 12.5px;
+  }
+  .brand-logo-img {
+    width: 22px;
+    height: 22px;
+  }
+  .header-actions .font-mono {
+    display: none;
+  }
+  .workspace-view-switcher .btn-studio-view {
+    padding: 3px 7px;
+    font-size: 10.5px;
+  }
+  .btn-studio-search {
+    padding: 3px 7px !important;
+  }
+  .btn-studio-search .search-kbd {
+    display: none !important;
+  }
+  .btn-screen-radio {
+    padding: 2px 7px;
+    font-size: 10.5px;
+  }
+  .btn-screen-radio .screen-radio-indicator {
+    width: 10px;
+    height: 10px;
+  }
+  .header-right-clock #row1SystemDate {
+    display: none;
+  }
+  .header-right-clock #row1SystemClock {
+    font-size: 12px !important;
+  }
+  .btn-clear {
+    font-size: 10.5px;
+    padding: 7px 4px;
+    min-height: 38px;
+  }
+  .slides-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
+}
+

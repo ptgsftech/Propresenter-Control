@@ -1,217 +1,149 @@
-// Get DOM elements
-const ipInput = document.getElementById('ipAddress');
-const portInput = document.getElementById('port');
-const connectBtn = document.getElementById('connectBtn');
-const connectionForm = document.getElementById('connectionForm');
+/**
+ * @file login.js
+ * @description ProPresenter Connection tester and login handler.
+ */
 
-// Load saved values from localStorage
-if (localStorage.getItem('proPresenterIP')) {
-    ipInput.value = localStorage.getItem('proPresenterIP');
-}
-if (localStorage.getItem('proPresenterPort')) {
-    portInput.value = localStorage.getItem('proPresenterPort');
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const ipInput = document.getElementById('ipAddress');
+  const portInput = document.getElementById('port');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const connectBtn = document.getElementById('connectBtn');
+  const directStudioBtn = document.getElementById('directStudioBtn');
+  const footerStudioLink = document.getElementById('footerStudioLink');
+  const connectionForm = document.getElementById('connectionForm');
 
-// Form submit handler
-connectionForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    connectToProPresenter();
-});
+  // Pre-fill from AppConfig / localStorage
+  const currentConfig = window.AppConfig ? window.AppConfig.getConfig() : { ip: '192.168.0.200', port: '1025' };
+  if (ipInput) ipInput.value = currentConfig.ip;
+  if (portInput) portInput.value = currentConfig.port;
 
-// Connect function
-async function connectToProPresenter() {
-    const ip = ipInput.value.trim();
-    const port = portInput.value.trim();
+  const savedUser = localStorage.getItem('proPresenterUsername');
+  if (usernameInput && savedUser) usernameInput.value = savedUser;
 
-    // Validation
-    if (!ip) {
-        showToast('Please enter an IP address', 'error');
-        ipInput.focus();
-        return;
+  // Preset buttons handler
+  document.querySelectorAll('.preset-ip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (ipInput) ipInput.value = btn.getAttribute('data-ip');
+    });
+  });
+
+  document.querySelectorAll('.preset-port').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (portInput) portInput.value = btn.getAttribute('data-port');
+    });
+  });
+
+  /**
+   * Safe navigation to the main Studio Controller website at /controller.
+   * @param {boolean} [bypass=false]
+   */
+  function goToWebsite(bypass = false) {
+    window.location.href = bypass ? '/controller?bypass=true' : '/controller';
+  }
+
+  /**
+   * Persists active connection settings to local storage.
+   * @param {string} ip
+   * @param {string} port
+   * @param {string} [version='v7']
+   */
+  function persistSettings(ip, port, version = 'v7') {
+    if (window.AppConfig) {
+      window.AppConfig.saveConfig(ip, port);
+      window.AppConfig.setConnected(version);
+    } else {
+      localStorage.setItem('proPresenterIP', ip);
+      localStorage.setItem('proPresenterPort', port);
+      localStorage.setItem('proPresenterConnected', 'true');
     }
 
-    if (!port) {
-        showToast('Please enter a port number', 'error');
-        portInput.focus();
-        return;
-    }
+    const username = usernameInput ? usernameInput.value.trim() : '';
+    const password = passwordInput ? passwordInput.value : '';
+    if (username) localStorage.setItem('proPresenterUsername', username);
+    if (password) sessionStorage.setItem('proPresenterSessionPass', btoa(password));
+  }
 
-    // Validate IP format (basic)
-    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipPattern.test(ip)) {
-        showToast('Please enter a valid IP address', 'error');
-        ipInput.focus();
-        return;
-    }
+  // Direct Website Entry button handler
+  if (directStudioBtn) {
+    directStudioBtn.addEventListener('click', () => {
+      const ip = (ipInput ? ipInput.value.trim() : '') || '192.168.0.200';
+      const port = (portInput ? portInput.value.trim() : '') || '1025';
+      persistSettings(ip, port, 'Direct Access');
+      goToWebsite(true);
+    });
+  }
 
-    // Validate port range
-    const portNum = parseInt(port);
-    if (portNum < 1 || portNum > 65535) {
-        showToast('Port must be between 1 and 65535', 'error');
-        portInput.focus();
-        return;
-    }
+  // Footer direct website link handler
+  if (footerStudioLink) {
+    footerStudioLink.addEventListener('click', (e) => {
+      const ip = (ipInput ? ipInput.value.trim() : '') || '192.168.0.200';
+      const port = (portInput ? portInput.value.trim() : '') || '1025';
+      persistSettings(ip, port, 'Direct Link');
+    });
+  }
 
-    // Save connection info to localStorage
-    localStorage.setItem('proPresenterIP', ip);
-    localStorage.setItem('proPresenterPort', port);
-    localStorage.setItem('proPresenterConnected', 'false'); // Will be set to true after successful connection
+  // Form submit (Connect & Test)
+  if (connectionForm) {
+    connectionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      connectToProPresenter();
+    });
+  }
 
-    // Show connecting state
-    const originalText = connectBtn.innerHTML;
-    connectBtn.innerHTML = '<i class="fas fa-spinner"></i> Connecting...';
+  async function connectToProPresenter() {
+    const ip = ipInput.value.trim() || '192.168.0.200';
+    const port = portInput.value.trim() || '1025';
+
+    const originalContent = connectBtn.innerHTML;
+    connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
     connectBtn.disabled = true;
 
-    // Test connection
     const baseURL = `http://${ip}:${port}`;
 
     try {
-        // First, test the connection by fetching version
-        const versionResponse = await fetch(`${baseURL}/version`, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
+      // 2.5-second timeout so user is never blocked or hanging indefinitely
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-        if (versionResponse.ok) {
-            const versionData = await versionResponse.json();
+      const response = await fetch(`${baseURL}/version`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
 
-            const serverPort = window.location.port || '80';
-            const serverProtocol = window.location.protocol;
-            localStorage.setItem('serverProtocol', serverProtocol);
-            localStorage.setItem('serverHost', window.location.hostname);
-            localStorage.setItem('serverPort', serverPort);
+      if (response.ok) {
+        const data = await response.json().catch(() => ({}));
+        persistSettings(ip, port, data.version || data.api_version || 'v7');
 
-            // Test API endpoints to ensure they work
-            let apiStatus = {
-                libraries: false,
-                playlists: false,
-                looks: false,
-                macros: false
-            };
+        connectBtn.innerHTML = '<i class="fas fa-check"></i> Connected! Opening Website...';
+        connectBtn.classList.remove('btn-warning');
+        connectBtn.classList.add('btn-success');
 
-            // Test libraries API
-            try {
-                const libResponse = await fetch(`${baseURL}/v1/libraries?chunked=false`);
-                apiStatus.libraries = libResponse.ok;
-            } catch (e) { console.log('Libraries API not available'); }
+        setTimeout(() => {
+          goToWebsite(false);
+        }, 300);
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (err) {
+      console.warn('Live connection check warning:', err);
+      // Persist user-entered values so they carry over to the controller
+      persistSettings(ip, port, 'Offline Mode');
 
-            // Test playlists API
-            try {
-                const playResponse = await fetch(`${baseURL}/v1/playlists?chunked=false`);
-                apiStatus.playlists = playResponse.ok;
-            } catch (e) { console.log('Playlists API not available'); }
+      const proceed = confirm(
+        `Unable to verify real-time link at ${baseURL} (${err.name === 'AbortError' ? 'Connection timed out' : 'Host unreachable'}).\n\nWould you like to open the Studio Website anyway in ready/offline mode?`
+      );
 
-            // Test looks API
-            try {
-                const looksResponse = await fetch(`${baseURL}/v1/looks`);
-                apiStatus.looks = looksResponse.ok;
-            } catch (e) { console.log('Looks API not available'); }
-
-            // Test macros API
-            try {
-                const macrosResponse = await fetch(`${baseURL}/v1/macros`);
-                apiStatus.macros = macrosResponse.ok;
-            } catch (e) { console.log('Macros API not available'); }
-
-            // Store all connection info
-            localStorage.setItem('proPresenterConnected', 'true');
-            localStorage.setItem('proPresenterVersion', versionData.version || 'Unknown');
-            localStorage.setItem('proPresenterBaseURL', baseURL);
-            localStorage.setItem('proPresenterAPIs', JSON.stringify(apiStatus));
-
-            showToast(`Connected successfully to v${versionData.version || 'Unknown'}`, 'success');
-
-            // Store connection timestamp
-            localStorage.setItem('proPresenterLastConnected', new Date().toISOString());
-
-            // Redirect to main page after short delay
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
-        } else {
-            throw new Error(`HTTP ${versionResponse.status}`);
-        }
-    } catch (error) {
-        console.error('Connection error:', error);
-        showToast(`Failed to connect to ${ip}:${port}. Make sure ProPresenter is running.`, 'error');
-        connectBtn.innerHTML = originalText;
+      if (proceed) {
+        connectBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Opening Website...';
+        setTimeout(() => {
+          goToWebsite(true);
+        }, 200);
+      } else {
+        connectBtn.innerHTML = originalContent;
         connectBtn.disabled = false;
-        localStorage.setItem('proPresenterConnected', 'false');
+      }
     }
-}
-
-// Toast notification function
-function showToast(message, type) {
-    // Remove existing toast
-    const existingToast = document.querySelector('.custom-toast');
-    if (existingToast) existingToast.remove();
-
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = 'custom-toast';
-
-    // Set icon and color based on type
-    let icon = 'fa-info-circle';
-    let bgColor = '#6366f1';
-
-    if (type === 'success') {
-        icon = 'fa-check-circle';
-        bgColor = '#10b981';
-    } else if (type === 'error') {
-        icon = 'fa-exclamation-circle';
-        bgColor = '#ef4444';
-    }
-
-    toast.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas ${icon}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-
-    toast.style.background = bgColor;
-    toast.style.color = 'white';
-    toast.style.padding = '12px 24px';
-    toast.style.borderRadius = '12px';
-    toast.style.fontSize = '14px';
-    toast.style.fontWeight = '500';
-    toast.style.position = 'fixed';
-    toast.style.bottom = '30px';
-    toast.style.left = '50%';
-    toast.style.transform = 'translateX(-50%)';
-    toast.style.zIndex = '10000';
-    toast.style.animation = 'slideUp 0.3s ease-out';
-    toast.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)';
-    toast.style.whiteSpace = 'nowrap';
-
-    document.body.appendChild(toast);
-
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        toast.style.animation = 'slideDown 0.3s ease-out';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Enter key support
-ipInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        portInput.focus();
-    }
-});
-
-portInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        connectToProPresenter();
-    }
-});
-
-// Auto-focus on IP input on page load
-window.addEventListener('DOMContentLoaded', function () {
-    ipInput.focus();
+  }
 });

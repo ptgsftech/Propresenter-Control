@@ -1,0 +1,997 @@
+/* ==========================================================================
+   BIBLE PRESENTER & PARALLEL COMPARISON TABLE STYLES
+   ========================================================================== */
+
+.bible-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  gap: 10px;
+}
+
+/* 1. Header Toolbar */
+.bible-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Live Display Blinking Animation */
+@keyframes liveBadgePulse {
+  0% {
+    background: rgba(255, 159, 10, 0.28);
+    border-color: rgba(255, 159, 10, 0.95);
+    box-shadow: 0 0 14px rgba(255, 159, 10, 0.65), inset 0 0 6px rgba(255, 159, 10, 0.35);
+    opacity: 1;
+  }
+  50% {
+    background: rgba(255, 159, 10, 0.08);
+    border-color: rgba(255, 159, 10, 0.35);
+    box-shadow: 0 0 3px rgba(255, 159, 10, 0.15), inset 0 0 1px rgba(255, 159, 10, 0.05);
+    opacity: 0.55;
+  }
+  100% {
+    background: rgba(255, 159, 10, 0.28);
+    border-color: rgba(255, 159, 10, 0.95);
+    box-shadow: 0 0 14px rgba(255, 159, 10, 0.65), inset 0 0 6px rgba(255, 159, 10, 0.35);
+    opacity: 1;
+  }
+}
+
+@keyframes liveDotBlink {
+  from {
+    opacity: 0.3;
+    transform: scale(0.75);
+    box-shadow: 0 0 2px #ff9f0a;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.15);
+    box-shadow: 0 0 9px #ff9f0a;
+  }
+}
+
+.bible-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 159, 10, 0.2);
+  color: #ff9f0a;
+  border: 1px solid var(--accent-orange-glow);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  animation: liveBadgePulse 1.4s ease-in-out infinite;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.bible-live-badge .live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ff9f0a;
+  animation: liveDotBlink 0.8s ease-in-out infinite alternate;
+}
+
+/* Keyboard shortcut badge */
+.bible-kbd {
+  background: #21262d;
+  color: var(--accent-orange);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* 2. Structured Search Controls */
+.bible-search-box {
+  background: rgba(18, 20, 24, 0.85);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bible-control-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.bible-select-dark {
+  background-color: #121418 !important;
+  color: #fff !important;
+  border: 1px solid var(--border-strong) !important;
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-md) !important;
+  transition: border-color var(--transition-fast);
+}
+
+.bible-select-dark:focus {
+  border-color: var(--accent-orange) !important;
+  box-shadow: 0 0 0 2px var(--accent-orange-glow) !important;
+  outline: none !important;
+}
+
+/* Version Slot styling */
+.version-slot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 2B. Verse History Tray & Interactive Chips */
+.bible-history-tray {
+  background: rgba(18, 20, 24, 0.75);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bible-history-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.bible-history-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.bible-history-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+
+.bible-history-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: #e6edf3;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.bible-history-pill:hover {
+  background: rgba(255, 159, 10, 0.15);
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  transform: translateY(-1px);
+}
+
+.bible-history-pill.is-active {
+  background: rgba(255, 159, 10, 0.22);
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  font-weight: 700;
+}
+
+.bible-history-pill .pill-ref {
+  font-weight: 600;
+}
+
+.bible-history-pill .pill-ver {
+  font-size: 9.5px;
+  opacity: 0.75;
+  font-family: var(--font-mono);
+}
+
+.bible-history-pill .pill-remove {
+  font-size: 10px;
+  opacity: 0.5;
+  margin-left: 2px;
+  border-radius: 50%;
+  padding: 0 2px;
+  transition: all var(--transition-fast);
+}
+
+.bible-history-pill .pill-remove:hover {
+  opacity: 1;
+  color: #ff453a;
+}
+
+/* 3. Parallel Comparison Table Container */
+.bible-table-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: rgba(15, 16, 19, 0.95);
+  position: relative;
+}
+
+.bible-parallel-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+/* Table Header */
+.bible-parallel-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #181b22;
+  border-bottom: 2px solid var(--border-strong);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.bible-parallel-table thead th.col-verse-num {
+  width: 60px;
+  text-align: center;
+}
+
+.bible-parallel-table thead th.col-actions {
+  width: 90px;
+  text-align: center;
+}
+
+/* Table Body Rows */
+.bible-parallel-table tbody tr {
+  transition: background 0.15s ease, border-color 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.bible-parallel-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Active / Live Row Glow */
+.bible-parallel-table tbody tr.row-live {
+  background: rgba(255, 159, 10, 0.12) !important;
+  box-shadow: inset 0 0 0 1px var(--accent-orange);
+}
+
+.bible-parallel-table tbody tr.row-live .verse-num-badge {
+  background: var(--accent-orange) !important;
+  color: #000 !important;
+  font-weight: 800;
+}
+
+/* Table Cells */
+.bible-parallel-table tbody td {
+  padding: 10px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.bible-parallel-table tbody td.verse-num-cell {
+  text-align: center;
+  padding: 10px 4px;
+}
+
+.verse-num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #252932;
+  color: #c9d1d9;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.verse-text-content {
+  color: #e6edf3;
+  word-break: break-word;
+}
+
+/* Tamil Typography Enhancement */
+.verse-text-content.lang-tamil {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Mukta Malar', 'Noto Sans Tamil', system-ui, sans-serif;
+  line-height: 1.7;
+}
+
+/* Empty or Loading State */
+.bible-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* Live Trigger Button inside row */
+.btn-verse-live {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   4. PROPRESENTER DYNAMIC RSS BIBLE FEEDS POPUP MODAL (User Reference Design)
+   ========================================================================== */
+
+.rss-custom-modal-content {
+  background: #0d0f14 !important;
+  border: 1px solid #232733 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85) !important;
+}
+
+.rss-custom-modal-header {
+  background: #12151e;
+  padding: 12px 18px;
+  border-bottom: 1px solid #1f2432;
+}
+
+.rss-app-gradient-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff3b30 0%, #ff9500 25%, #ffcc00 50%, #007aff 75%, #5856d6 100%);
+  flex-shrink: 0;
+}
+
+.rss-app-gradient-badge-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #ff3b30 0%, #ff9500 25%, #ffcc00 50%, #007aff 75%, #5856d6 100%);
+  flex-shrink: 0;
+}
+
+.rss-app-icon-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #007aff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.rss-host-pill-container {
+  background: #171b26;
+  border: 1px solid #282f42;
+  border-radius: 20px;
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rss-host-pill-btn {
+  background: transparent;
+  border: none;
+  color: #8fa3bf;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-mono);
+}
+
+.rss-host-pill-btn.active {
+  background: #2b3245;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.rss-host-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #64748b;
+  margin-right: 4px;
+}
+
+.rss-host-pill-btn.active .rss-host-dot {
+  background: #10b981;
+}
+
+.rss-btn-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 15px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.18s;
+}
+
+.rss-btn-close:hover {
+  color: #ffffff;
+}
+
+/* Sidebar (Left Part) */
+.rss-modal-sidebar {
+  background: #080a0f;
+  border-right: 1px solid #1a1e2b;
+  padding: 14px;
+  min-height: 520px;
+}
+
+.rss-sidebar-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ff9f0a;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.rss-modal-version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 440px;
+}
+
+.rss-version-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid #1c202d;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease-in-out;
+  user-select: none;
+}
+
+.rss-version-item:hover {
+  background: rgba(255, 159, 10, 0.04);
+  border-color: rgba(255, 159, 10, 0.35);
+  transform: translateX(2px);
+}
+
+.rss-version-item.active {
+  background: rgba(255, 159, 10, 0.08) !important;
+  border: 1px solid #ff9f0a !important;
+  box-shadow: 0 0 14px rgba(255, 159, 10, 0.22);
+}
+
+.rss-version-code-badge {
+  background: #112035;
+  color: #38bdf8;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.rss-version-item.active .rss-version-code-badge {
+  background: #182e4e;
+  color: #60a5fa;
+  border-color: #3b82f6;
+}
+
+/* Main Area (Right Part) */
+.rss-modal-main {
+  background: #0e1118;
+  padding: 16px 18px;
+  max-height: 76vh;
+  overflow-y: auto;
+}
+
+.rss-active-version-banner {
+  background: #131722;
+  border: 1px solid #232838;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.rss-banner-title {
+  font-size: 13.5px;
+  line-height: 1.3;
+}
+
+.rss-live-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #ff9f0a;
+  color: #ff9f0a;
+  background: rgba(255, 159, 10, 0.1);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+}
+
+/* 3 Feed Cards */
+.rss-feed-card {
+  background: #131620;
+  border: 1px solid #ff9f0a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: all 0.2s;
+}
+
+.rss-feed-card:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  border-color: #ffb03a;
+}
+
+.rss-pill-badge-orange {
+  background: #d97706;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.rss-best-for-text {
+  font-size: 11px;
+  color: #ffc107;
+}
+
+.rss-best-for-text span {
+  color: #94a3b8;
+}
+
+.rss-preview-box {
+  background: #080a0f;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #cbd5e1;
+  margin: 8px 0;
+  line-height: 1.45;
+}
+
+.rss-preview-title {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.rss-url-input {
+  background: #06080e !important;
+  border: 1px solid #1e293b !important;
+  color: #38bdf8 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11.5px !important;
+  border-radius: 8px 0 0 8px !important;
+}
+
+.btn-rss-copy {
+  background: #f59e0b !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border: none !important;
+  border-radius: 0 8px 8px 0 !important;
+  padding: 0 16px !important;
+  font-size: 12px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+
+.btn-rss-copy:hover {
+  background: #fbbf24 !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* Feed Configuration Settings Popover Panel */
+.rss-config-popover {
+  position: absolute;
+  bottom: 54px;
+  right: 24px;
+  width: 285px;
+  background: #0c0e15;
+  border: 1px solid #ff9f0a;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  animation: popoverFadeIn 0.2s ease-out;
+}
+
+.rss-config-popover::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  right: 48px;
+  width: 14px;
+  height: 14px;
+  background: #0c0e15;
+  border-right: 1px solid #ff9f0a;
+  border-bottom: 1px solid #ff9f0a;
+  transform: rotate(45deg);
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.rss-cfg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rss-cfg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  color: #cbd5e1;
+  gap: 10px;
+}
+
+.rss-range-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #0284c7;
+  border-radius: 2px;
+  outline: none;
+}
+
+.rss-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+.rss-number-input {
+  width: 85px;
+  background: #141722;
+  border: 1px solid #2a3144;
+  border-radius: 6px;
+  color: #fff;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  text-align: right;
+  outline: none;
+}
+
+.rss-number-input:focus {
+  border-color: #ff9f0a;
+}
+
+.btn-rss-apply {
+  background: #ffffff;
+  color: #000000;
+  font-weight: 700;
+  font-size: 12px;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 0;
+  width: 100%;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-rss-apply:hover {
+  background: #f1f5f9;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+}
+
+/* iOS-Style Switches */
+.ios-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  margin: 0;
+}
+
+.ios-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ios-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #334155;
+  transition: .25s;
+  border-radius: 18px;
+}
+
+.ios-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .25s;
+  border-radius: 50%;
+}
+
+.ios-switch input:checked + .ios-slider {
+  background-color: #0284c7;
+}
+
+.ios-switch input:checked + .ios-slider:before {
+  transform: translateX(14px);
+}
+
+/* Setup Tip Bar */
+.rss-setup-tip-bar {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #1f2536;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Modal Footer */
+.rss-custom-modal-footer {
+  background: #0f121a;
+  border-top: 1px solid #1c202d;
+  padding: 10px 18px;
+}
+
+.btn-rss-modal-close {
+  background: #1c212e;
+  border: 1px solid #2d3448;
+  color: #e2e8f0;
+  font-size: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-rss-modal-close:hover {
+  background: #272e40;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   BIBLE PRESENTER & RSS MODAL RESPONSIVE ENHANCEMENTS
+   Multi-Device Ergonomics (Tablet & Mobile Phone)
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  #bibleRssModal .modal-dialog {
+    max-width: 94vw !important;
+    margin: 12px auto !important;
+  }
+  .rss-modal-sidebar {
+    padding: 12px;
+  }
+  .rss-modal-main {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 1. Bible Header Toolbar */
+  .bible-header-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bible-live-badge {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  .bible-search-box {
+    padding: 8px 10px;
+  }
+
+  /* 2. Parallel Table Horizontal Swiping on Mobile */
+  .bible-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-md);
+  }
+  .bible-parallel-table {
+    min-width: 540px;
+  }
+  /* Sticky Verse Number Column */
+  .bible-parallel-table thead th.col-verse-num,
+  .bible-parallel-table tbody td.verse-num-cell {
+    position: sticky;
+    left: 0;
+    background: #14161d;
+    z-index: 4;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.4);
+  }
+  .bible-parallel-table thead th.col-verse-num {
+    z-index: 12;
+  }
+
+  /* 3. ProPresenter RSS Modal Mobile Structure */
+  .rss-custom-modal-content {
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .rss-custom-modal-header {
+    padding: 12px 14px;
+  }
+  .rss-custom-modal-header .modal-title {
+    font-size: 13.5px !important;
+  }
+  .rss-host-pill-container {
+    padding: 2px;
+  }
+  .rss-host-pill-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  /* Transform Left Version Sidebar into sleek horizontal scrolling bar */
+  .rss-modal-sidebar {
+    border-right: none !important;
+    border-bottom: 1px solid #1c202d !important;
+    padding: 10px 14px !important;
+    min-height: auto !important;
+  }
+  .rss-sidebar-footer {
+    display: none !important;
+  }
+  .rss-modal-version-list {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 4px !important;
+  }
+  .rss-version-item {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 6px 12px !important;
+    font-size: 11.5px !important;
+  }
+
+  /* Right Part (Feed cards) */
+  .rss-modal-main {
+    padding: 12px 14px !important;
+    overflow-y: auto !important;
+    max-height: calc(92vh - 180px);
+  }
+  .rss-active-version-banner {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 6px;
+  }
+  .rss-feed-card {
+    padding: 12px !important;
+  }
+  .rss-url-input {
+    border-radius: 8px 8px 0 0 !important;
+    font-size: 11px !important;
+    width: 100% !important;
+  }
+  .btn-rss-copy {
+    border-radius: 0 0 8px 8px !important;
+    width: 100% !important;
+    justify-content: center;
+    padding: 9px 0 !important;
+    font-size: 12.5px !important;
+    min-height: 40px;
+  }
+
+  /* Feed Configuration Settings Popover converts to Slide-up Bottom Sheet */
+  .rss-config-popover {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 18px 18px 0 0 !important;
+    border-bottom: none !important;
+    border-left: 1px solid #ff9f0a !important;
+    border-right: 1px solid #ff9f0a !important;
+    border-top: 1px solid #ff9f0a !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.95) !important;
+    z-index: 1080 !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    padding: 18px 16px !important;
+  }
+  .rss-config-popover::after {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .bible-control-label {
+    font-size: 9.5px;
+  }
+  .bible-select-dark {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+  }
+  .verse-text-content {
+    font-size: 12.5px;
+  }
+  .bible-history-tray {
+    padding: 4px 8px;
+  }
+  .bible-history-pill {
+    font-size: 10.5px;
+    padding: 2px 7px;
+  }
+}
+
+
+

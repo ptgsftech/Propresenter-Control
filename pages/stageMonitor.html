@@ -1,467 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Stage Monitor - ProPresenter</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>ProPresenter Stage Confidence Monitor</title>
+  <link rel="icon" type="image/jpg" href="../src/Propresenter.jpg">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/theme.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    /* Top Floating Controls Bar */
+    .stage-top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 100;
+    }
+    body:hover .stage-top-bar, .stage-top-bar:focus-within {
+      opacity: 1;
+    }
 
-        body {
-            margin: 0;
-            background-color: #000000;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: white;
-            height: 100vh;
-            overflow: hidden;
-        }
+    /* Main Monitor Layout */
+    .monitor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px;
+      gap: 14px;
+      height: 100vh;
+      box-sizing: border-box;
+    }
 
-        /* Main Container */
-        .container {
-            width: 100%;
-            height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+    /* Current Slide Container (Primary) */
+    .current-slide-panel {
+      flex: 5.5;
+      background: #0d0e12;
+      border: 3px solid #ffb300;
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(255, 179, 0, 0.15);
+    }
+    .panel-label {
+      position: absolute;
+      top: 10px;
+      left: 16px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffb300;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .slide-main-text {
+      font-size: clamp(28px, 5.5vw, 68px);
+      font-weight: 800;
+      line-height: 1.35;
+      color: #ffffff;
+      white-space: pre-wrap;
+      word-break: break-word;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+      max-height: 100%;
+      overflow-y: auto;
+    }
 
-        /* Top Box - Current Slide */
-        .current-slide-box {
-            border: 3px solid #ffd700;
-            border-radius: 12px;
-            padding: 30px 20px;
-            text-align: center;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+    /* Next Slide Container (Preview) */
+    .next-slide-panel {
+      flex: 3.5;
+      background: #090a0d;
+      border: 2px solid #38bdf8;
+      border-radius: var(--radius-md);
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel-label-next {
+      position: absolute;
+      top: 8px;
+      left: 14px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #38bdf8;
+    }
+    .slide-next-text {
+      font-size: clamp(20px, 3.6vw, 42px);
+      font-weight: 600;
+      line-height: 1.35;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 100%;
+      overflow-y: auto;
+    }
 
-        .main-text {
-            font-size: 48px;
-            font-weight: bold;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
+    /* Footer: Stage Message + Timers */
+    .monitor-footer {
+      flex: 1.2;
+      display: flex;
+      gap: 14px;
+      min-height: 60px;
+    }
+    .stage-msg-box {
+      flex: 1;
+      background: #181015;
+      border: 2px solid #ef4444;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      gap: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .stage-msg-box.has-message {
+      background: #2b0d12;
+      border-color: #ff334b;
+      box-shadow: 0 0 20px rgba(255, 51, 75, 0.4);
+      animation: alert-pulse 1.8s infinite;
+    }
+    .stage-msg-content {
+      font-size: clamp(16px, 2.5vw, 28px);
+      font-weight: 700;
+      color: #ff4d6d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-        .label-current {
-            font-size: 16px;
-            color: #ffd700;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+    @keyframes alert-pulse {
+      0% { border-color: #ff334b; }
+      50% { border-color: #ffd700; }
+      100% { border-color: #ff334b; }
+    }
 
-        /* Middle Box - Next Slide */
-        .next-slide-box {
-            border: 2px solid #ffd700;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(135deg, #0a0a0a 0%, #151515 100%);
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+    .time-box {
+      background: #11141b;
+      border: 2px solid #262c3b;
+      border-radius: var(--radius-md);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: clamp(18px, 2.8vw, 32px);
+      font-weight: 700;
+      color: #ffb300;
+      white-space: nowrap;
+    }
+    .countdown-indicator {
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .sub-text {
-            font-size: 36px;
-            color: #ffd700;
-            font-weight: bold;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
+    /* Status Pill */
+    .live-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
 
-        .label-next {
-            font-size: 14px;
-            color: #ffd700;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: 0.8;
-        }
-
-        /* Footer */
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 2px solid #ffd700;
-            border-radius: 12px;
-            background: #0a0a0a;
-        }
-
-        .stage-message {
-            padding: 15px 20px;
-            font-size: 28px;
-            font-weight: bold;
-            flex: 1;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .time {
-            background-color: #000000;
-            color: #ffd700;
-            padding: 15px 25px;
-            font-size: 28px;
-            font-weight: bold;
-            border-left: 2px solid #ffd700;
-            font-family: monospace;
-            white-space: nowrap;
-        }
-
-        /* Connection Status */
-        .connection-status {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            z-index: 1000;
-        }
-
-        .status-connected {
-            color: #00ff00;
-        }
-
-        .status-disconnected {
-            color: #ff4444;
-        }
-
-        /* Error Overlay */
-        .error-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .error-card {
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            border: 1px solid #ff4444;
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            max-width: 450px;
-        }
-
-        .error-card h2 {
-            color: #ff4444;
-            margin-bottom: 20px;
-        }
-
-        .error-card button {
-            padding: 12px 25px;
-            background: #ffd700;
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .main-text { font-size: 28px; }
-            .sub-text { font-size: 22px; }
-            .stage-message { font-size: 18px; }
-            .time { font-size: 18px; }
-        }
-
-        .loading-dots::after {
-            content: '...';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%, 100% { content: '...'; }
-        }
-    </style>
+    /* QR Code Modal */
+    .qr-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    .qr-box {
+      background: #181a20;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container" id="mainContainer">
-    <div class="current-slide-box">
-        <!-- <div class="label-current"><i class="fas fa-play-circle"></i> CURRENT SLIDE</div> -->
-        <div class="main-text" id="currentSlideText">Connecting<span class="loading-dots"></span></div>
+  <!-- Floating Bar for Operator Controls -->
+  <div class="stage-top-bar" id="stageTopBar">
+    <div class="d-flex align-items-center gap-3">
+      <span class="live-status-pill" id="streamStatusPill">
+        <span class="live-dot" id="streamDot"></span>
+        <span id="streamStatusText">Connecting...</span>
+      </span>
+      <span class="text-secondary small font-mono" id="serverInfoText">ProPresenter 7</span>
     </div>
 
-    <div class="next-slide-box">
-        <!-- <div class="label-next"><i class="fas fa-forward"></i> NEXT SLIDE</div> -->
-        <div class="sub-text" id="nextSlideText">--</div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn-studio btn-icon-only" id="fontDecBtn" title="Decrease Font Size"><i class="fas fa-minus"></i></button>
+      <button class="btn-studio btn-icon-only" id="fontIncBtn" title="Increase Font Size"><i class="fas fa-plus"></i></button>
+      <button class="btn-studio btn-icon-only" id="qrBtn" title="Share Mobile QR Code"><i class="fas fa-qrcode"></i></button>
+      <button class="btn-studio btn-icon-only" id="fullscreenBtn" title="Toggle Fullscreen"><i class="fas fa-expand"></i></button>
+      <a href="index.html" class="btn-studio btn-studio-orange text-decoration-none"><i class="fas fa-sliders-h"></i> Controller</a>
+    </div>
+  </div>
+
+  <!-- Stage Confidence Monitor View -->
+  <div class="monitor-container">
+    
+    <!-- Current Live Slide Text -->
+    <div class="current-slide-panel" id="currentSlidePanel">
+      <div class="panel-label">
+        <i class="fas fa-play text-orange"></i> CURRENT SLIDE
+        <span id="slideIndexBadge" class="badge-prop badge-orange ms-2">LIVE</span>
+      </div>
+      <div class="slide-main-text" id="currentSlideText">Connecting to ProPresenter...</div>
     </div>
 
-    <div class="footer">
-        <div class="stage-message" id="stageMessage"><i class="fas fa-comment"></i> No message</div>
-        <div class="time" id="time">--:--</div>
+    <!-- Next Slide Preview -->
+    <div class="next-slide-panel" id="nextSlidePanel">
+      <div class="panel-label-next">
+        <i class="fas fa-forward text-cyan"></i> NEXT SLIDE
+      </div>
+      <div class="slide-next-text" id="nextSlideText">--</div>
     </div>
-</div>
 
-<div class="connection-status">
-    <span id="connectionStatusText" class="status-disconnected">● Disconnected</span>
-</div>
+    <!-- Footer: Stage Message & Clocks -->
+    <div class="monitor-footer">
+      <div class="stage-msg-box" id="stageMessageBox">
+        <i class="fas fa-bullhorn text-danger fs-4"></i>
+        <div class="stage-msg-content" id="stageMessageText">No active stage message</div>
+      </div>
 
-<div class="error-overlay" id="errorOverlay">
-    <div class="error-card">
-        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff4444; margin-bottom: 20px;"></i>
-        <h2>Connection Failed</h2>
-        <p id="errorMessage" style="color: #aaa;">Unable to connect to ProPresenter</p>
-        <button onclick="window.close()"><i class="fas fa-times"></i> Close</button>
+      <div class="time-box">
+        <div class="countdown-indicator" id="videoCountdownBox" style="display: none;">
+          <i class="fas fa-film"></i>
+          <span id="videoCountdownVal">00:00</span>
+        </div>
+        <div id="clockDisplay">12:00:00 AM</div>
+      </div>
     </div>
-</div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  </div>
 
-<script>
-    let ws = null;
-    let reconnectAttempts = 0;
-    let maxReconnectAttempts = 10;
-    let currentConfig = { ip: '', port: '', password: '' };
-    let manualDisconnect = false;
+  <!-- QR Code Modal -->
+  <div class="qr-modal" id="qrModal">
+    <div class="qr-box">
+      <h5 class="text-orange mb-3"><i class="fas fa-qrcode"></i> Scan for Stage Monitor</h5>
+      <div id="qrcodeDisplay" class="d-flex justify-content-center p-3 bg-black rounded mb-3"></div>
+      <p class="text-secondary small mb-3">Musicians, singers, and speakers can view this monitor on their smartphone or iPad.</p>
+      <button class="btn-studio w-100" id="closeQrBtn">Close</button>
+    </div>
+  </div>
 
-    // Get configuration from URL parameters
-    function getConfigFromUrl() {
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        let ip = urlParams.get('ip');
-        let port = urlParams.get('port');
-        let password = urlParams.get('password');
-        
-        // If not in URL, try localStorage (from main app)
-        if (!ip) ip = localStorage.getItem('proPresenterIP');
-        if (!port) port = localStorage.getItem('proPresenterPort');
-        if (!password) password = localStorage.getItem('proPresenterPassword');
-        
-        // Default fallback
-        if (!ip) ip = 'localhost';
-        if (!port) port = '50001';
-        if (!password) password = 'stage';
-        
-        return { ip, port, password: password || '' };
-    }
+  <!-- Scripts -->
+  <script src="../js/config.js"></script>
+  <script src="../js/api/api-client.js"></script>
+  <script src="../js/api/stream-client.js"></script>
+  <script src="../js/state/store.js"></script>
 
-    function updateElementContent(element, newContent, isHtml = false) {
-        if (!element) return;
-        element.style.transition = 'opacity 0.3s ease';
-        element.style.opacity = '0';
-        setTimeout(() => {
-            if (isHtml) element.innerHTML = newContent;
-            else element.textContent = newContent;
-            element.style.opacity = '1';
-        }, 150);
-    }
+  <script>
+    // --- STAGE MONITOR SCRIPT ---
+    const config = AppConfig.getConfig();
+    const apiClient = new ApiClient(config.baseURL);
+    const store = new StateStore();
 
-    function setCurrent(text) {
-        if (!text || text.trim() === '') text = '— No Content —';
-        updateElementContent(document.getElementById('currentSlideText'), text);
-    }
+    // DOM Elements
+    const currentSlideText = document.getElementById('currentSlideText');
+    const nextSlideText = document.getElementById('nextSlideText');
+    const slideIndexBadge = document.getElementById('slideIndexBadge');
+    const stageMessageBox = document.getElementById('stageMessageBox');
+    const stageMessageText = document.getElementById('stageMessageText');
+    const clockDisplay = document.getElementById('clockDisplay');
+    const videoCountdownBox = document.getElementById('videoCountdownBox');
+    const videoCountdownVal = document.getElementById('videoCountdownVal');
+    const streamStatusPill = document.getElementById('streamStatusPill');
+    const streamDot = document.getElementById('streamDot');
+    const streamStatusText = document.getElementById('streamStatusText');
+    const serverInfoText = document.getElementById('serverInfoText');
 
-    function setNext(text) {
-        if (!text || text.trim() === '') text = '— No Content —';
-        updateElementContent(document.getElementById('nextSlideText'), text);
-    }
+    let currentFontSizeScale = 1.0;
 
-    function setStageMessage(message) {
-        const stageMessageDiv = document.getElementById('stageMessage');
-        if (!message || message.trim() === '') {
-            updateElementContent(stageMessageDiv, '<i class="fas fa-comment"></i> No message', true);
-        } else {
-            updateElementContent(stageMessageDiv, `<i class="fas fa-comment"></i> ${escapeHtml(message)}`, true);
-        }
-    }
+    // Stream Client Setup
+    const streamClient = new StreamClient(config.baseURL, {
+      onEvent: (url, data) => {
+        store.ingestStreamEvent(url, data);
+      },
+      onStatusChange: (status) => {
+        updateStreamUI(status);
+      },
+      onError: (err) => {
+        console.warn('Stream status:', err.message);
+      }
+    });
 
-    function updateTime() {
-        const now = new Date();
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        document.getElementById('time').textContent = `${hours}:${minutes} ${ampm}`;
-    }
-
-    setInterval(updateTime, 1000);
-    updateTime();
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function processMessage(message) {
-  //console.log(message);
-  if (message.acn == "ath") {
-    if (message.ath == true) {
-      console.log("Authentication succeeded");
-    } else {
-      console.log("Authentication failed: " + message.err);
-    }
-  } else if (message.acn == "fv") {
-    for(a in message.ary) {
-      if (message.ary[a].acn == "cs") {
-        setCurrent(message.ary[a].txt);
-      } else if (message.ary[a].acn == "ns") {
-        setNext(message.ary[a].txt);
+    function updateStreamUI(status) {
+      streamDot.className = 'live-dot';
+      if (status === 'connected') {
+        streamDot.classList.add('connected');
+        streamStatusText.textContent = 'STREAM LIVE';
+        streamStatusPill.style.borderColor = 'var(--color-success)';
+      } else if (status === 'reconnecting' || status === 'connecting') {
+        streamDot.classList.add('streaming');
+        streamStatusText.textContent = 'RECONNECTING';
+        streamStatusPill.style.borderColor = 'var(--accent-orange)';
+      } else {
+        streamDot.classList.add('error');
+        streamStatusText.textContent = 'OFFLINE';
+        streamStatusPill.style.borderColor = 'var(--color-danger)';
       }
     }
-  }
-}
 
-    // function processMessage(data) {
-    //     console.log('Received:', data);
-        
-    //     if (data) {
-    //         if (data.currentText !== undefined) setCurrent(data.currentText);
-    //         else if (data.current_slide !== undefined) setCurrent(data.current_slide);
-    //         else if (data.text !== undefined && data.type === 'current') setCurrent(data.text);
-    //         else if (data.current) setCurrent(data.current);
-            
-    //         if (data.nextText !== undefined) setNext(data.nextText);
-    //         else if (data.next_slide !== undefined) setNext(data.next_slide);
-    //         else if (data.text !== undefined && data.type === 'next') setNext(data.text);
-    //         else if (data.next) setNext(data.next);
-            
-    //         if (data.message !== undefined) setStageMessage(data.message);
-    //         else if (data.stageMessage !== undefined) setStageMessage(data.stageMessage);
-    //         else if (data.stage_message !== undefined) setStageMessage(data.stage_message);
-            
-    //         if (data.stageDisplay) {
-    //             if (data.stageDisplay.current) setCurrent(data.stageDisplay.current);
-    //             if (data.stageDisplay.next) setNext(data.stageDisplay.next);
-    //             if (data.stageDisplay.message) setStageMessage(data.stageDisplay.message);
-    //         }
-    //     }
-    // }
+    // Subscribe to Store updates
+    store.subscribe('slide:status', (slideData) => {
+      const cur = slideData.current?.text || '';
+      const nxt = slideData.next?.text || '';
+      currentSlideText.textContent = cur.trim() || '(Blank Slide)';
+      nextSlideText.textContent = nxt.trim() || '--';
+    });
 
-    function updateConnectionStatus(connected) {
-        const statusText = document.getElementById('connectionStatusText');
-        if (connected) {
-            statusText.innerHTML = '● Connected';
-            statusText.className = 'status-connected';
-            document.getElementById('errorOverlay').style.display = 'none';
-        } else {
-            statusText.innerHTML = '● Disconnected';
-            statusText.className = 'status-disconnected';
+    store.subscribe('presentation:slide_index', (data) => {
+      if (data && data.index !== undefined) {
+        slideIndexBadge.textContent = `SLIDE ${data.index + 1}`;
+      }
+    });
+
+    store.subscribe('stage:message', (msg) => {
+      if (msg && msg.trim()) {
+        stageMessageText.textContent = msg;
+        stageMessageBox.classList.add('has-message');
+      } else {
+        stageMessageText.textContent = 'No active stage message';
+        stageMessageBox.classList.remove('has-message');
+      }
+    });
+
+    store.subscribe('timer:video_countdown', (countdown) => {
+      if (countdown && countdown !== '00:00:00' && countdown !== '00:00') {
+        videoCountdownVal.textContent = countdown;
+        videoCountdownBox.style.display = 'flex';
+      } else {
+        videoCountdownBox.style.display = 'none';
+      }
+    });
+
+    // Initial Load & Stream Connect
+    async function initStageMonitor() {
+      serverInfoText.textContent = `${config.ip}:${config.port}`;
+      try {
+        const ver = await apiClient.getVersion();
+        if (ver && ver.host_description) {
+          serverInfoText.textContent = ver.host_description;
         }
-    }
 
-    function showError(message) {
-        document.getElementById('errorMessage').textContent = message;
-        document.getElementById('errorOverlay').style.display = 'flex';
-        updateConnectionStatus(false);
-    }
+        // Fetch initial snapshot
+        const [slideSnap, msgSnap] = await Promise.all([
+          apiClient.getSlideStatus().catch(() => null),
+          apiClient.getStageMessage().catch(() => null)
+        ]);
 
-    function connect() {
-        const wsUrl = `ws://${currentConfig.ip}:${currentConfig.port}/stagedisplay`;
-        console.log('Connecting to:', wsUrl);
-        
-        try {
-            ws = new WebSocket(wsUrl);
-            
-            ws.onopen = function() {
-                console.log('WebSocket connection established');
-                updateConnectionStatus(true);
-                reconnectAttempts = 0;
-                setCurrent('Connected - Waiting for slides...');
-                setNext('--');
-                
-                if (currentConfig.password) {
-                    const authMsg = JSON.stringify({
-                        pwd: currentConfig.password,
-                        ptl: 610,
-                        acn: "ath"
-                    });
-                    ws.send(authMsg);
-                }
-            };
-            
-            ws.onmessage = function(e) {
-                try {
-                    const data = JSON.parse(e.data);
-                    processMessage(data);
-                } catch (err) {
-                    console.log('Raw message:', e.data);
-                    if (e.data && typeof e.data === 'string') {
-                        try {
-                            const parsed = JSON.parse(e.data);
-                            processMessage(parsed);
-                        } catch {
-                            setCurrent(e.data);
-                        }
-                    }
-                }
-            };
-            
-            ws.onclose = function(e) {
-                console.log('WebSocket closed:', e.reason);
-                if (!manualDisconnect) {
-                    updateConnectionStatus(false);
-                    setCurrent('Connection lost - Reconnecting...');
-                    
-                    if (reconnectAttempts < maxReconnectAttempts) {
-                        reconnectAttempts++;
-                        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-                        setTimeout(connect, delay);
-                    } else {
-                        showError('Connection lost. Please refresh the page.');
-                    }
-                }
-            };
-            
-            ws.onerror = function(err) {
-                console.error('WebSocket error:', err);
-                if (!manualDisconnect) {
-                    updateConnectionStatus(false);
-                    showError(`Failed to connect to ${currentConfig.ip}:${currentConfig.port}`);
-                }
-            };
-        } catch (err) {
-            console.error('Failed to create WebSocket:', err);
-            showError('Failed to connect: ' + err.message);
+        if (slideSnap) {
+          store.ingestStreamEvent('status/slide', slideSnap);
         }
-    }
-
-    function init() {
-        currentConfig = getConfigFromUrl();
-        console.log('Config loaded:', currentConfig);
-        
-        if (currentConfig.ip && currentConfig.port) {
-            connect();
-        } else {
-            showError('No connection configuration found.');
+        if (msgSnap) {
+          store.ingestStreamEvent('stage/message', msgSnap);
         }
+      } catch (e) {
+        console.log('Initial fetch note:', e.message);
+      }
+
+      // Connect persistent chunked stream
+      streamClient.connect([
+        'status/slide',
+        'presentation/slide_index',
+        'stage/message',
+        'timer/video_countdown',
+        'timer/system_time'
+      ]);
     }
 
-    init();
-</script>
+    // System Clock
+    function updateClock() {
+      const now = new Date();
+      clockDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Font Controls
+    document.getElementById('fontIncBtn').addEventListener('click', () => {
+      currentFontSizeScale = Math.min(currentFontSizeScale + 0.15, 1.8);
+      applyFontSize();
+    });
+    document.getElementById('fontDecBtn').addEventListener('click', () => {
+      currentFontSizeScale = Math.max(currentFontSizeScale - 0.15, 0.7);
+      applyFontSize();
+    });
+    function applyFontSize() {
+      currentSlideText.style.fontSize = `calc(clamp(28px, 5.5vw, 68px) * ${currentFontSizeScale})`;
+      nextSlideText.style.fontSize = `calc(clamp(20px, 3.6vw, 42px) * ${currentFontSizeScale})`;
+    }
+
+    // Fullscreen Toggle
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+
+    // QR Code Modal
+    const qrModal = document.getElementById('qrModal');
+    document.getElementById('qrBtn').addEventListener('click', () => {
+      const currentUrl = window.location.href;
+      const qrContainer = document.getElementById('qrcodeDisplay');
+      qrContainer.innerHTML = '';
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrContainer, {
+          text: currentUrl,
+          width: 220,
+          height: 220,
+          colorDark: "#ffb300",
+          colorLight: "#000000",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+      qrModal.style.display = 'flex';
+    });
+    document.getElementById('closeQrBtn').addEventListener('click', () => {
+      qrModal.style.display = 'none';
+    });
+
+    window.addEventListener('DOMContentLoaded', initStageMonitor);
+  </script>
 </body>
 </html>

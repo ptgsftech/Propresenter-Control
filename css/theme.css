@@ -1,0 +1,267 @@
+/* ==========================================================================
+   PROPRESENTER 7 THEME DESIGN SYSTEM - theme.css
+   Modern, Studio-Grade Dark Slate Aesthetics tailored for ProPresenter Control
+   Integrated with Bootstrap 5
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Canvas & Background Surfaces */
+  --bg-canvas: #0c0d10;
+  --bg-surface: #14161c;
+  --bg-surface-elevated: #1e2129;
+  --bg-surface-hover: #272b36;
+  --bg-surface-active: #313745;
+  --bg-card: rgba(20, 22, 28, 0.95);
+
+  /* Hairline Borders & Dividers */
+  --border-subtle: #242833;
+  --border-strong: #363c4d;
+  --border-highlight: rgba(255, 255, 255, 0.16);
+
+  /* ProPresenter Signature Brand Accents */
+  --accent-orange: #ff9f0a;
+  --accent-orange-hover: #ffb340;
+  --accent-orange-glow: rgba(255, 159, 10, 0.45);
+  --accent-orange-subtle: rgba(255, 159, 10, 0.14);
+
+  /* Display & Layer Semantic Accents */
+  --accent-cyan: #38bdf8;
+  --accent-cyan-glow: rgba(56, 189, 248, 0.4);
+  --accent-cyan-subtle: rgba(56, 189, 248, 0.14);
+
+  --accent-purple: #c084fc;
+  --accent-purple-glow: rgba(192, 132, 252, 0.4);
+  --accent-purple-subtle: rgba(192, 132, 252, 0.14);
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-success-glow: rgba(16, 185, 129, 0.4);
+  --color-success-subtle: rgba(16, 185, 129, 0.14);
+
+  --color-danger: #ef4444;
+  --color-danger-glow: rgba(239, 68, 68, 0.4);
+  --color-danger-subtle: rgba(239, 68, 68, 0.14);
+
+  --color-warning: #f59e0b;
+  --color-info: #0ea5e9;
+
+  /* Typography Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-dim: #475569;
+
+  /* Fonts (with full Tamil Unicode support) */
+  --font-sans: 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+
+  /* Spacings */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.75);
+  --shadow-glow-orange: 0 0 16px var(--accent-orange-glow);
+  --shadow-glow-cyan: 0 0 16px var(--accent-cyan-glow);
+  --shadow-glow-purple: 0 0 16px var(--accent-purple-glow);
+
+  /* Transitions */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Body */
+html, body {
+  background-color: var(--bg-canvas) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-orange);
+}
+
+/* Semantic Classes */
+.bg-canvas { background-color: var(--bg-canvas) !important; }
+.bg-surface { background-color: var(--bg-surface) !important; }
+.bg-surface-elevated { background-color: var(--bg-surface-elevated) !important; }
+.border-subtle { border-color: var(--border-subtle) !important; }
+.border-strong { border-color: var(--border-strong) !important; }
+
+.font-mono { font-family: var(--font-mono) !important; }
+.text-orange { color: var(--accent-orange) !important; }
+.text-cyan { color: var(--accent-cyan) !important; }
+.text-purple { color: var(--accent-purple) !important; }
+
+/* Badges */
+.badge-prop {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  line-height: 1.2;
+}
+.badge-orange {
+  background: var(--accent-orange-subtle);
+  color: var(--accent-orange);
+  border-color: rgba(255, 159, 10, 0.35);
+}
+.badge-cyan {
+  background: var(--accent-cyan-subtle);
+  color: var(--accent-cyan);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.badge-purple {
+  background: var(--accent-purple-subtle);
+  color: var(--accent-purple);
+  border-color: rgba(192, 132, 252, 0.35);
+}
+.badge-success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+.badge-danger {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* Tactile Studio Buttons */
+.btn-studio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  text-decoration: none;
+}
+.btn-studio:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-highlight);
+  color: #fff;
+}
+.btn-studio:active {
+  transform: translateY(1px);
+  background: var(--bg-surface-active);
+}
+
+.btn-studio-orange {
+  background: var(--accent-orange);
+  color: #000 !important;
+  border-color: var(--accent-orange);
+  font-weight: 700;
+}
+.btn-studio-orange:hover {
+  background: var(--accent-orange-hover);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.btn-studio-cyan {
+  background: var(--accent-cyan);
+  color: #000 !important;
+  border-color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.btn-studio-danger {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.btn-studio-danger:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-icon-only {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-md);
+}
+
+/* Pulsing Status Dot */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  display: inline-block;
+  transition: all var(--transition-normal);
+}
+.live-dot.connected {
+  background: var(--color-success);
+  box-shadow: 0 0 10px var(--color-success);
+  animation: pulse-dot 2s infinite;
+}
+.live-dot.streaming {
+  background: var(--accent-orange);
+  box-shadow: 0 0 10px var(--accent-orange);
+  animation: pulse-dot 1.2s infinite;
+}
+.live-dot.error {
+  background: var(--color-danger);
+  box-shadow: 0 0 10px var(--color-danger);
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

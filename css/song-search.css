@@ -1,0 +1,748 @@
+/* ==========================================================================
+   PROPRESENTER MULTI-MODE SONG SEARCH - song-search.css
+   Authentic Dark Slate Aesthetics, Modal Backdrop, Multi-Mode Tabs,
+   Author Avatar Tray & Responsive Result Card Grid (minmax(260px, 1fr))
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Master Header & Navigation Search Button
+   -------------------------------------------------------------------------- */
+.btn-studio-search {
+  background: rgba(255, 159, 10, 0.12) !important;
+  border: 1px solid rgba(255, 159, 10, 0.35) !important;
+  color: #fff !important;
+  padding: 5px 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: var(--radius-sm, 6px) !important;
+  font-size: 12px !important;
+  transition: all var(--transition-fast, 0.15s ease) !important;
+  cursor: pointer;
+}
+
+.btn-studio-search:hover {
+  background: rgba(255, 159, 10, 0.22) !important;
+  border-color: var(--accent-orange, #ff9f0a) !important;
+  box-shadow: 0 0 12px rgba(255, 159, 10, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+.search-kbd {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  padding: 1px 5px;
+  color: var(--accent-orange, #ff9f0a);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   2. Modal Overlay & Backdrop
+   -------------------------------------------------------------------------- */
+.pro-search-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(8, 9, 13, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 2050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s;
+}
+
+.pro-search-modal-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --------------------------------------------------------------------------
+   3. Modal Dialog Container
+   -------------------------------------------------------------------------- */
+.pro-search-dialog {
+  width: 100%;
+  max-width: 1100px;
+  max-height: 88vh;
+  background: #14161d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.96) translateY(-8px);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pro-search-modal-backdrop.open .pro-search-dialog {
+  transform: scale(1) translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   4. Header & Search Input Bar
+   -------------------------------------------------------------------------- */
+.pro-search-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #181b24;
+}
+
+.pro-search-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #0e1015;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 0 14px;
+  transition: all 0.18s ease;
+}
+
+.pro-search-input-wrapper:focus-within {
+  border-color: var(--accent-orange, #ff9f0a);
+  box-shadow: 0 0 0 3px rgba(255, 159, 10, 0.2), 0 0 12px rgba(255, 159, 10, 0.25);
+  background: #12141c;
+}
+
+.pro-search-icon {
+  font-size: 16px;
+  color: var(--accent-orange, #ff9f0a);
+  margin-right: 12px;
+}
+
+.pro-search-input {
+  flex: 1;
+  height: 48px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+  font-family: var(--font-sans, inherit);
+  letter-spacing: 0.2px;
+}
+
+.pro-search-input::placeholder {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.pro-search-clear-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+  margin-right: 8px;
+}
+
+.pro-search-clear-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pro-search-badge-kbd {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #94a3b8;
+  user-select: none;
+}
+
+.pro-search-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.pro-search-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+/* --------------------------------------------------------------------------
+   5. Active Filter Pill Bar
+   -------------------------------------------------------------------------- */
+.pro-search-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  background: #11131a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pro-search-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.pro-search-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 159, 10, 0.12);
+  border: 1px solid rgba(255, 159, 10, 0.35);
+  color: #ffb340;
+  font-size: 12px;
+  font-weight: 600;
+  animation: filterPillSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pro-search-filter-pill.author-filter {
+  background: rgba(192, 132, 252, 0.12);
+  border-color: rgba(192, 132, 252, 0.35);
+  color: #d8b4fe;
+}
+
+.pro-search-filter-pill.library-filter {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+}
+
+@keyframes filterPillSlide {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.pro-search-filter-remove {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 12px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.pro-search-filter-remove:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* --------------------------------------------------------------------------
+   6. Mode Navigation Tabs & Result Stats
+   -------------------------------------------------------------------------- */
+.pro-search-modes-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 20px;
+  background: #141720;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pro-search-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0d0f14;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pro-search-tab {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pro-search-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pro-search-tab.active {
+  background: var(--accent-orange, #ff9f0a);
+  color: #0c0d10;
+  box-shadow: 0 0 10px rgba(255, 159, 10, 0.35);
+  font-weight: 700;
+}
+
+.pro-search-tab .tab-subtitle {
+  font-size: 10px;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.pro-search-stats {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+  font-family: var(--font-mono, monospace);
+  display: flex;
+  align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   7. Context Trays (Mode 2: Library Dropdown & Mode 3: Author Tray)
+   -------------------------------------------------------------------------- */
+.pro-search-context-tray {
+  background: #181c26;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 20px;
+  animation: traySlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes traySlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pro-search-tray-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.pro-tray-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.pro-search-select {
+  background-color: #0f1118 !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  height: 38px !important;
+  cursor: pointer;
+}
+
+.pro-search-select:focus {
+  border-color: var(--accent-cyan, #38bdf8) !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Author Avatar Carousel */
+.pro-author-avatar-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 6px 2px 8px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.pro-author-avatar-carousel::-webkit-scrollbar {
+  height: 5px;
+}
+.pro-author-avatar-carousel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.pro-author-avatar-carousel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.pro-author-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 10px;
+  transition: transform 0.16s ease, background 0.16s ease;
+  user-select: none;
+  width: 76px;
+}
+
+.pro-author-bubble:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pro-author-bubble.active {
+  background: rgba(192, 132, 252, 0.12);
+}
+
+.pro-author-bubble-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+  position: relative;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.18s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.pro-author-bubble:hover .pro-author-bubble-circle {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pro-author-bubble.active .pro-author-bubble-circle {
+  border-color: var(--accent-purple, #c084fc);
+  box-shadow: 0 0 0 2px var(--accent-purple, #c084fc), 0 0 14px rgba(192, 132, 252, 0.6);
+  transform: scale(1.04);
+}
+
+.pro-author-count-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #0c0d10;
+  border: 1px solid var(--accent-purple, #c084fc);
+  color: var(--accent-purple, #c084fc);
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 5px;
+  line-height: 1.1;
+  font-family: var(--font-mono, monospace);
+}
+
+.pro-author-bubble-name {
+  font-size: 11px;
+  color: #cbd5e1;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pro-author-bubble.active .pro-author-bubble-name {
+  color: #c084fc;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   8. Results Grid & Cards (Responsive repeat(auto-fill, minmax(260px, 1fr)))
+   -------------------------------------------------------------------------- */
+.pro-search-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  background: #0f1117;
+  min-height: 280px;
+  max-height: calc(88vh - 210px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.pro-search-body::-webkit-scrollbar {
+  width: 6px;
+}
+.pro-search-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.pro-search-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+}
+
+.pro-search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+/* Individual Song Result Card */
+.pro-song-card {
+  background: linear-gradient(145deg, #181b24, #13151c);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s ease,
+              box-shadow 0.18s ease,
+              background 0.18s ease;
+  position: relative;
+  min-height: 135px;
+  user-select: none;
+}
+
+.pro-song-card:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(145deg, #1f232e, #171a22);
+  border-color: var(--accent-orange, #ff9f0a);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 159, 10, 0.25);
+}
+
+.pro-song-card.selected {
+  border-color: var(--accent-orange, #ff9f0a);
+  box-shadow: 0 0 0 2px var(--accent-orange, #ff9f0a), 0 0 14px rgba(255, 159, 10, 0.35);
+}
+
+/* Card Header */
+.song-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.song-lib-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: var(--accent-cyan, #38bdf8);
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-cue-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Card Body */
+.song-card-body {
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.song-primary-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 4px 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.song-secondary-title {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-style: italic;
+}
+
+/* Card Footer */
+.song-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 8px;
+}
+
+.song-author-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #c084fc;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.btn-song-trigger {
+  background: rgba(255, 159, 10, 0.15);
+  border: 1px solid rgba(255, 159, 10, 0.35);
+  color: #ff9f0a;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.pro-song-card:hover .btn-song-trigger {
+  background: var(--accent-orange, #ff9f0a);
+  color: #0c0d10;
+  box-shadow: 0 0 10px rgba(255, 159, 10, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   9. Empty & Loading States
+   -------------------------------------------------------------------------- */
+.pro-search-state-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  min-height: 240px;
+}
+
+/* --------------------------------------------------------------------------
+   10. Modal Footer
+   -------------------------------------------------------------------------- */
+.pro-search-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #11131a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pro-search-footer kbd {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+}
+
+/* --------------------------------------------------------------------------
+   11. Live Trigger Toast Notification
+   -------------------------------------------------------------------------- */
+.pro-search-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #181b24;
+  border: 1px solid var(--accent-orange, #ff9f0a);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 14px rgba(255, 159, 10, 0.3);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 3000;
+  animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   12. Responsive Adjustments
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .pro-search-modal-backdrop {
+    padding: 10px;
+  }
+  .pro-search-dialog {
+    max-height: 94vh;
+  }
+  .pro-search-header {
+    padding: 12px 14px;
+  }
+  .pro-search-input {
+    font-size: 14px;
+    height: 42px;
+  }
+  .pro-search-modes-bar {
+    padding: 6px 14px;
+  }
+  .pro-search-body {
+    padding: 12px 14px;
+  }
+  .pro-search-grid {
+    grid-template-columns: 1fr;
+  }
+}

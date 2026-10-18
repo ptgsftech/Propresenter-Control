@@ -1,317 +1,1090 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ProPresenter Remote Control</title>
-    <link rel="icon" type="image/jpg" href="/src/Propresenter.jpg">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ProPresenter Web Studio Controller</title>
+  <link rel="icon" type="image/jpg" href="../src/Propresenter.jpg">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- ProPresenter 7 Theme & Responsive Stylesheets -->
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/song-search.css">
+  <link rel="stylesheet" href="../css/bible.css">
+
+  <!-- QRCode.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <!-- Fuse.js for Tier 5 Fuzzy Song Search Fallback -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.basic.min.js"></script>
 </head>
+<body class="bg-canvas text-light">
 
-<body>
-    <div class="app-wrapper">
-        <!-- Header Area -->
-        <div class="main-header">
-            <div class="bg-dark px-4 py-3 border-bottom border-secondary">
-                <div class="row g-3 align-items-center">
-                    <div class="col-md-4">
-                        <i class="fas fa-chalkboard-user text-primary me-2"></i>
-                        <span class="h5 mb-0 text-white fw-semibold">ProPresenter Remote</span>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="d-flex justify-content-end align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="text-white">Audience</span>
-                                <div class="screen-btn-small-header inactive" id="audienceBtn"><i class="fas fa-tv"></i>
-                                </div>
-                                <span class="badge bg-danger" id="audienceStatus">OFF</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="text-white">Stage</span>
-                                <div class="screen-btn-small-header inactive" id="stageBtn"><i
-                                        class="fas fa-desktop"></i></div>
-                                <span class="badge bg-danger" id="stageStatus">OFF</span>
-                            </div>
+  <div class="app-shell">
 
-                            <!-- NEW: Stage Monitor Button with QR Code -->
-                            <button class="btn btn-outline-warning btn-sm" id="stageMonitorBtn"
-                                title="Open Stage Monitor">
-                                <i class="fas fa-tv"></i> Monitor
-                            </button>
+    <!-- 1. MASTER TOP HEADER -->
+    <header class="master-header">
+      <!-- Left: Logo, Remote Title, Host IP & Logout Button -->
+      <div class="brand-section">
+        <img src="../src/Propresenter.jpg" alt="ProPresenter" class="brand-logo-img shadow-sm">
+        <div class="brand-text-container">
+          <div class="d-flex align-items-center gap-2">
+            <h1 class="brand-title">ProPresenter <span>Remote</span></h1>
+            <span class="badge-prop badge-orange" id="propVersionBadge">v7</span>
+          </div>
+          <!-- Under the logo/title: Host IP + Live Status + Logout Button -->
+          <div class="brand-login-info d-flex align-items-center gap-2 mt-1">
+            <span class="live-dot connected" id="connectionStatusDot" title="Connected"></span>
+            <span class="font-mono text-cyan fw-bold" id="headerHostName" style="font-size: 11px;">192.168.0.200:1025</span>
+            <button type="button" class="btn-studio-logout" id="disconnectBtn" title="Logout & Return to Connection Login">
+              <i class="fas fa-power-off me-1"></i><span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-                            <div class="status-dot" id="statusDot"></div>
-                            <span id="connectionText" class="text-white-50 small">Disconnected</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <!-- Center-Right: View Switcher (Show vs Bible) + Library Catalog + Search + Screen Radio Controls + RSS -->
+      <div class="header-center-info">
+        <!-- View Switcher (Show vs Bible) -->
+        <div class="workspace-view-switcher shadow-sm me-1" role="group" aria-label="Workspace View">
+          <button type="button" class="btn-studio-view active" id="viewModeShowBtn" title="Display Presentation Show View (Ctrl+1)">
+            <i class="fas fa-desktop me-1"></i> Show
+          </button>
+          <button type="button" class="btn-studio-view" id="viewModeBibleBtn" title="Display Bible Scripture Presenter View (Ctrl+2)">
+            <i class="fas fa-bible me-1"></i> Bible
+          </button>
         </div>
 
-        <!-- Main flex layout: LEFT (FIXED) + MIDDLE (SCROLLABLE) + RIGHT (FIXED) -->
-        <div class="dashboard-layout">
-            <!-- LEFT SIDEBAR - Selected Container & Contents -->
-            <div class="left-sidebar">
-                <div class="card-custom card-full-height">
-                    <div class="card-header-custom d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-folder-open me-2"></i> <span id="selectedContainerName">Select a
-                                library/playlist</span></span>
-                        <span class="badge bg-secondary" id="itemsCount">0</span>
-                    </div>
-                    <div class="card-content-wrapper flex-grow-1">
-                        <div id="contentsList">
-                            <div class="text-center text-muted py-3 small">Click library or playlist to view items</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-custom">
-                    <div class="card-header-custom"><i class="fas fa-info-circle me-2"></i> Info</div>
-                    <div class="card-content-wrapper">
-                        <div class="small text-secondary">Select any library/playlist from right panel → contents appear
-                            here. Click on a slide to trigger or preview.</div>
-                    </div>
-                </div>
-            </div>
+        <!-- Library & Playlists Catalog Popup Trigger (Ctrl+L) -->
+        <button type="button" class="btn-studio btn-studio-search shadow-sm" id="headerLibraryBtn" title="Open Library & Playlists Catalog (Ctrl+L / Cmd+L)">
+          <i class="fas fa-book-bookmark text-warning"></i>
+          <span class="d-none d-md-inline fw-bold">Library</span>
+          <kbd class="search-kbd d-none d-lg-inline ms-1">Ctrl+L</kbd>
+        </button>
 
-            <!-- MIDDLE SECTION (SCROLLABLE ONLY) -->
-            <div class="middle-scroll-area">
-                <!-- Row 1: 5 cards - Each card takes equal width using col -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-6 col-lg">
-                        <div class="card-fixed">
-                            <div class="card-header-custom"><i class="fas fa-palette me-2"></i> Looks</div>
-                            <div class="card-content-fixed" id="looksList">Loading looks...</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg">
-                        <div class="card-fixed">
-                            <div class="card-header-custom"><i class="fas fa-video me-2"></i> Capture</div>
-                            <div class="card-content-fixed">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-success btn-custom" id="startCaptureBtn"><i
-                                            class="fas fa-play"></i> Start</button>
-                                    <button class="btn btn-danger btn-custom" id="stopCaptureBtn"><i
-                                            class="fas fa-stop"></i> Stop</button>
-                                </div>
-                                <div class="mt-2 text-center text-muted small" id="captureStatus">Idle</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg">
-                        <div class="card-fixed">
-                            <div class="card-header-custom"><i class="fas fa-presentation-screen me-2"></i> Presentation
-                            </div>
-                            <div class="card-content-fixed">
-                                <div class="row g-2">
-                                    <div class="col-6"><button class="btn btn-primary btn-custom w-100 btn-sm"
-                                            id="startPresentationBtn"><i class="fas fa-play"></i> Start</button></div>
-                                    <div class="col-6"><button class="btn btn-success btn-custom w-100 btn-sm"
-                                            id="nextSlideBtn"><i class="fas fa-forward"></i> Next</button></div>
-                                    <div class="col-6"><button class="btn btn-warning btn-custom w-100 btn-sm"
-                                            id="prevSlideBtn"><i class="fas fa-backward"></i> Prev</button></div>
-                                    <div class="col-6"><button class="btn btn-danger btn-custom w-100 btn-sm"
-                                            id="clearSlideBtn"><i class="fas fa-trash-alt"></i> Clear</button></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg">
-                        <div class="card-fixed">
-                            <div class="card-header-custom"><i class="fas fa-photo-film me-2"></i> Media</div>
-                            <div class="card-content-fixed">
-                                <div class="row g-2">
-                                    <div class="col-6"><button class="btn btn-primary btn-custom w-100 btn-sm"
-                                            id="playMediaBtn"><i class="fas fa-play"></i> Play</button></div>
-                                    <div class="col-6"><button class="btn btn-success btn-custom w-100 btn-sm"
-                                            id="nextMediaBtn"><i class="fas fa-step-forward"></i> Next</button></div>
-                                    <div class="col-6"><button class="btn btn-warning btn-custom w-100 btn-sm"
-                                            id="prevMediaBtn"><i class="fas fa-step-backward"></i> Prev</button></div>
-                                    <div class="col-6"><button class="btn btn-danger btn-custom w-100 btn-sm"
-                                            id="stopMediaBtn"><i class="fas fa-stop"></i> Stop</button></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg">
-                        <div class="card-fixed">
-                            <div class="card-header-custom"><i class="fas fa-clock me-2"></i> System Time</div>
-                            <div class="card-content-fixed text-center">
-                                <div class="system-time-display">
-                                    <div class="time-large" id="systemTime">--:--:--</div>
-                                    <div class="date-small text-muted" id="systemDate">--/--/----</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Global Multi-Mode Song Search Button (Ctrl+K) -->
+        <button type="button" class="btn-studio btn-studio-search shadow-sm" id="headerSongSearchBtn" title="Search songs across all libraries (Ctrl+K / Cmd+K)">
+          <i class="fas fa-magnifying-glass text-orange"></i>
+          <span class="d-none d-lg-inline fw-semibold">Search</span>
+          <kbd class="search-kbd d-none d-sm-inline">Ctrl+K</kbd>
+        </button>
 
-                <!-- Row 2: Macro + Playlist + Stage Controls - Fully Responsive -->
-                <div class="custom-row-2">
-                    <!-- Macro Card - Responsive width -->
-                    <div class="macro-fixed-card">
-                        <div class="card-large-height">
-                            <div class="card-header-custom"><i class="fas fa-code-branch me-2"></i> Macros</div>
-                            <div class="card-content-fixed-large" id="macrosList">Loading macros...</div>
-                        </div>
-                    </div>
-
-                    <!-- Playlist Card - Takes remaining space -->
-                    <div class="playlist-flex-card">
-                        <div class="card-large-height">
-                            <div class="card-header-custom"><i class="fas fa-list me-2"></i> Playlist Quick Actions
-                            </div>
-                            <div class="card-content-fixed-large" id="playlistQuickList">Loading playlists...</div>
-                        </div>
-                    </div>
-
-                    <!-- Stage Controls Column -->
-                    <div class="stage-flex-card">
-                        <!-- Stage Control Card -->
-                        <div class="card-medium-height stage-control-card">
-                            <div class="card-header-custom"><i class="fas fa-stage me-2"></i> Stage Control</div>
-                            <div class="stage-control-content">
-                                <div class="stage-screen-section">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span><i class="fas fa-desktop text-info"></i> Stage Screen</span>
-                                        <button class="btn btn-sm btn-outline-primary"
-                                            id="stageScreenBtn">Toggle</button>
-                                    </div>
-                                    <div class="text-center">
-                                        <span class="badge bg-secondary" id="stageScreenStatus">Loading...</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Stage Message Card - No Scrollbar -->
-                        <div class="card-medium-height mt-3 stage-message-card">
-                            <div class="card-header-custom"><i class="fas fa-message text-warning me-2"></i> Stage
-                                Message</div>
-                            <div class="stage-message-content">
-                                <textarea class="form-control-custom stage-message-textarea" id="stageMessageText"
-                                    placeholder="Type your stage message here..." rows="2"></textarea>
-
-                                <div class="stage-message-buttons">
-                                    <button class="btn btn-danger btn-sm" id="clearStageMessageBtn">
-                                        <i class="fas fa-trash-alt me-1"></i> Clear
-                                    </button>
-                                    <button class="btn btn-primary btn-sm" id="sendStageMessageBtn">
-                                        <i class="fas fa-paper-plane me-1"></i> Send
-                                    </button>
-                                </div>
-
-                                <div class="stage-message-status" id="stageMessageStatus">No active message</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Third Row: Presentation Display -->
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="card-full" id="statusPanel">
-                            <div class="card-header-custom"><i class="fas fa-info-circle me-2"></i> Presentation Display
-                            </div>
-                            <div class="card-content-full p-3">
-                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                                    <div><strong><i class="fas fa-layer-group"></i> Active Presentation:</strong> <span
-                                            class="text-info ms-2" id="activePresentation">-</span></div>
-                                    <div class="timeline-controls-inline mt-2 mt-sm-0">
-                                        <span class="text-muted me-2"><i class="fas fa-clock"></i> Timeline:</span>
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-secondary btn-custom" id="timelinePlayBtn"><i
-                                                    class="fas fa-play"></i></button>
-                                            <button class="btn btn-secondary btn-custom" id="timelinePauseBtn"><i
-                                                    class="fas fa-pause"></i></button>
-                                            <button class="btn btn-secondary btn-custom" id="timelineRewindBtn"><i
-                                                    class="fas fa-backward-fast"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mb-3"><strong><i class="fas fa-sliders-h"></i> Current Slide:</strong> <span
-                                        class="text-info ms-2" id="currentSlide">-</span></div>
-                                <div class="slide-display-container">
-                                    <div class="slide-image-wrapper" id="slideImageWrapper" style="display: none;">
-                                        <img id="currentSlideImage" class="slide-image" alt="Current Slide">
-                                    </div>
-                                    <div id="slidePlaceholder" class="slide-placeholder">
-                                        <i class="fas fa-image fa-4x mb-3"></i>
-                                        <p class="mb-0">No slide selected</p>
-                                        <small class="text-muted">Click on a slide from left panel</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT SIDEBAR - Library and Playlist Lists -->
-            <div class="right-sidebar">
-                <div class="card-custom card-full-height">
-                    <div class="card-header-custom"><i class="fas fa-book me-2"></i> LIBRARY</div>
-                    <div class="card-content-wrapper flex-grow-1">
-                        <div id="libraryList">Loading libraries...</div>
-                    </div>
-                </div>
-                <div class="card-custom card-full-height">
-                    <div class="card-header-custom"><i class="fas fa-list me-2"></i> PLAYLIST</div>
-                    <div class="card-content-wrapper flex-grow-1">
-                        <div id="playlistList">Loading playlists...</div>
-                    </div>
-                </div>
-            </div>
+        <!-- Audience & Stage Screen Controls: Red outline when OFF, Green filled when ON -->
+        <div class="header-screen-controls d-flex align-items-center gap-1">
+          <button type="button" class="btn-screen-radio" id="headerAudienceToggleBtn" title="Audience Screen: Click to toggle (Red outline = OFF, Green = ON)">
+            <span class="screen-radio-indicator" id="headerAudienceRadio"></span>
+            <span class="screen-radio-text"><i class="fas fa-tv me-1"></i>Audience</span>
+          </button>
+          <button type="button" class="btn-screen-radio" id="headerStageToggleBtn" title="Stage Screen: Click to toggle (Red outline = OFF, Green = ON)">
+            <span class="screen-radio-indicator" id="headerStageRadio"></span>
+            <span class="screen-radio-text"><i class="fas fa-chalkboard-user me-1"></i>Stage</span>
+          </button>
         </div>
+
+        <!-- Audience Looks Dropdown -->
+        <div class="d-none d-xl-flex align-items-center gap-1">
+          <label for="headerLooksSelect" class="small text-secondary mb-0 fw-bold"><i class="fas fa-eye text-purple me-1"></i>Look:</label>
+          <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto py-0 px-2" id="headerLooksSelect" style="font-size: 11.5px; height: 28px;">
+            <option>Loading looks...</option>
+          </select>
+        </div>
+
+        <!-- Direct ProPresenter RSS Feeds Access Button (Only shown in Bible view) -->
+        <button type="button" class="btn-studio btn-studio-cyan shadow-sm" id="topNavRssFeedsBtn" style="display: none;" title="View & Copy ProPresenter RSS URLs (Ctrl+R)">
+          <i class="fas fa-rss text-black"></i>
+          <span class="d-none d-md-inline fw-bold text-black">RSS Feeds</span>
+          <kbd class="search-kbd d-none d-lg-inline text-dark border-dark ms-1">Ctrl+R</kbd>
+        </button>
+
+        <!-- Stage Monitor Link / QR Button -->
+        <button class="btn-studio btn-studio-orange shadow-sm" id="openStageMonitorQRBtn" title="Open Stage Monitor & Mobile QR (Ctrl+M)">
+          <i class="fas fa-qrcode"></i>
+          <span class="d-none d-xl-inline ms-1">Stage QR</span>
+        </button>
+
+        <!-- Shortcuts Help Button -->
+        <button type="button" class="btn-studio btn-icon-only text-secondary" id="headerShortcutsBtn" title="Keyboard Shortcuts Reference (Ctrl+/)">
+          <i class="fas fa-keyboard"></i>
+        </button>
+      </div>
+
+      <!-- Right: System Time Digital Clock & Date -->
+      <div class="header-right-clock text-end d-flex flex-column align-items-end justify-content-center">
+        <div class="fs-6 fw-bold font-mono text-orange lh-1" id="row1SystemClock">12:00:00 PM</div>
+        <div class="text-secondary small font-mono mt-1" id="row1SystemDate" style="font-size: 10px;">Sunday Service</div>
+      </div>
+    </header>
+
+    <!-- 2. MAIN WORKSPACE VIEWPORT (EXPANSIVE FULL VIEW) -->
+    <div class="workspace-viewport">
+
+      <!-- ====================================================================
+           CENTER COLUMN: Full View Slide Cues Deck / Bible Scripture
+           ==================================================================== -->
+      <main class="col-center-workspace">
+
+
+        <!-- ------------------------------------------------------------------
+             ROW 2: Presentation Section - Slide View
+             ------------------------------------------------------------------ -->
+        <section id="cuesSectionWrapper" class="card bg-surface border-subtle shadow-sm p-3">
+          <!-- Presentation Top Control Header -->
+          <div class="presentation-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="presentation-title-box">
+              <h4 id="activePresentationTitle" class="mb-1 fw-bold text-white">No Presentation Loaded</h4>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge-prop badge-orange" id="slidesCountBadge">0 Cues</span>
+                <span class="text-secondary small font-mono" id="currentSlideIndicator">Slide -- of --</span>
+              </div>
+            </div>
+
+            <!-- Tactile Cue Nav & Timeline Controls -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <button class="btn btn-warning fw-bold px-3 py-1 text-black d-flex align-items-center gap-1 shadow-sm" id="prevSlideBtn" title="Previous Slide (Arrow Left)">
+                <i class="fas fa-backward"></i> Prev
+              </button>
+              <button class="btn btn-dark border-secondary px-2 py-1 text-light" id="retriggerPresBtn" title="Retrigger from Start">
+                <i class="fas fa-rotate-left"></i>
+              </button>
+              <button class="btn btn-warning fw-bold px-3 py-1 text-black d-flex align-items-center gap-1 shadow-sm" id="nextSlideBtn" title="Next Slide (Space / Arrow Right)">
+                Next <i class="fas fa-forward"></i>
+              </button>
+
+              <div class="d-flex align-items-center gap-1 ms-2 border-start border-secondary ps-2">
+                <button class="btn btn-dark border-secondary btn-icon-only text-success" id="timelinePlayBtn" title="Play Timeline">
+                  <i class="fas fa-play"></i>
+                </button>
+                <button class="btn btn-dark border-secondary btn-icon-only text-warning" id="timelinePauseBtn" title="Pause Timeline">
+                  <i class="fas fa-pause"></i>
+                </button>
+                <button class="btn btn-dark border-secondary btn-icon-only text-secondary" id="timelineRewindBtn" title="Rewind Timeline">
+                  <i class="fas fa-backward-step"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide Cues Grid Container -->
+          <div class="slides-grid-container" id="slidesGrid">
+            <div class="col-12 py-5 text-center text-muted">
+              <i class="fas fa-music fs-2 mb-2 text-warning opacity-75"></i>
+              <p class="mb-1 fw-bold text-light">Select a song from the library or set on the left</p>
+              <span class="small text-secondary">Click on any song to view slides and trigger presentation</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------------------------------
+             ROW 3: Bible Presenter Section (Separated Bible View)
+             ------------------------------------------------------------------ -->
+        <section class="card bg-surface border-subtle shadow-sm p-3 d-none workspace-view-hidden bible-panel" id="middleRow3Bible">
+          <!-- 1. Header Toolbar -->
+          <div class="bible-header-bar">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-bible text-warning fs-5"></i>
+              <strong class="text-white text-uppercase small letter-spacing-1">Bible Scripture</strong>
+              <span class="bible-live-badge" id="bibleActiveLiveBadge" title="Current Live Broadcast Verse">
+                <span class="live-dot"></span>
+                <i class="fas fa-satellite-dish me-1"></i> <span id="bibleActiveVerseRef">Ready</span>
+              </span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-sm btn-cyan text-black fw-bold py-1 px-3 shadow-sm" id="bibleToggleRssSectionBtn" title="Open ProPresenter RSS URLs Popup">
+                <i class="fas fa-rss me-1"></i> ProPresenter RSS URLs
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" style="font-size: 11px;" id="bibleClearScreenBtn" title="Clear Scripture from Live Display">
+                <i class="fas fa-ban me-1"></i> Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Structured Search & Multi-Version Bar -->
+          <div class="bible-search-box">
+            <!-- Row A: Version 1, 2, 3 + Book + Chapter + Verse + Load -->
+            <div class="row g-2 align-items-end">
+              <!-- Version 1 (Primary) -->
+              <div class="col-6 col-sm-4 col-md-2">
+                <label class="bible-control-label">Version 1</label>
+                <select class="form-select form-select-sm bible-select-dark" id="bibleVersion1" title="Primary Bible Version">
+                  <option value="TAM" selected>TAM (Tamil)</option>
+                  <option value="KJV">KJV (English)</option>
+                </select>
+              </div>
+
+              <!-- Version 2 (Optional) -->
+              <div class="col-6 col-sm-4 col-md-2">
+                <label class="bible-control-label">Version 2 <span class="text-secondary fw-normal">(Opt)</span></label>
+                <select class="form-select form-select-sm bible-select-dark" id="bibleVersion2" title="Secondary Parallel Version">
+                  <option value="" selected>— None —</option>
+                  <option value="KJV">KJV (English)</option>
+                  <option value="TAM">TAM (Tamil)</option>
+                </select>
+              </div>
+
+              <!-- Version 3 (Optional) -->
+              <div class="col-6 col-sm-4 col-md-2">
+                <label class="bible-control-label">Version 3 <span class="text-secondary fw-normal">(Opt)</span></label>
+                <select class="form-select form-select-sm bible-select-dark" id="bibleVersion3" title="Third Parallel Version">
+                  <option value="" selected>— None —</option>
+                  <option value="KJV">KJV (English)</option>
+                  <option value="TAM">TAM (Tamil)</option>
+                </select>
+              </div>
+
+              <!-- Book Selector -->
+              <div class="col-6 col-sm-6 col-md-3">
+                <label class="bible-control-label">Book (ஆகமம்)</label>
+                <select class="form-select form-select-sm bible-select-dark" id="bibleBookSelect" title="Select Bible Book">
+                  <option value="GEN" selected>ஆதியாகமம் (GEN)</option>
+                </select>
+              </div>
+
+              <!-- Chapter Input & Stepper -->
+              <div class="col-6 col-sm-3 col-md-1">
+                <label class="bible-control-label">Chapter</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control bg-dark text-white border-secondary text-center px-1" id="bibleChapterInput" min="1" max="150" value="1" title="Chapter number">
+                </div>
+              </div>
+
+              <!-- Verse Input (Optional) -->
+              <div class="col-6 col-sm-3 col-md-1">
+                <label class="bible-control-label">Verse <span class="text-secondary fw-normal">(Opt)</span></label>
+                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary text-center px-1" id="bibleVerseInput" min="1" placeholder="All" title="Verse number (optional)">
+              </div>
+
+              <!-- Action Load Button -->
+              <div class="col-12 col-md-1 d-grid">
+                <button type="button" class="btn btn-sm btn-warning text-dark fw-bold py-1" id="bibleLoadBtn" title="Fetch verses">
+                  <i class="fas fa-book-open me-1"></i> Load
+                </button>
+              </div>
+            </div>
+
+            <!-- Row B: Free Search & Navigation -->
+            <div class="row g-2 align-items-center mt-1">
+              <div class="col-12 col-md-9 col-lg-8">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-black border-secondary text-warning">
+                    <i class="fas fa-magnifying-glass"></i>
+                  </span>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Search reference (Gen 1 1, Gen1:1, 1Cor 13 4, யோவா 3 16) or keyword..." id="bibleSearchInput" autocomplete="off">
+                  <span class="input-group-text bg-black border-secondary text-muted d-none d-sm-flex" title="Keyboard Shortcut to focus Bible Search">
+                    <kbd class="bible-kbd">Ctrl+B</kbd>
+                  </span>
+                  <button class="btn btn-warning text-black fw-bold px-3" id="bibleSearchBtn">Search</button>
+                </div>
+              </div>
+              <div class="col-12 col-md-3 col-lg-4 d-flex align-items-center justify-content-end gap-2">
+                <span class="small text-secondary font-mono d-none d-lg-inline">Chapter:</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" id="biblePrevChapterBtn" title="Previous Chapter"><i class="fas fa-chevron-left me-1"></i> Prev</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" id="bibleNextChapterBtn" title="Next Chapter">Next <i class="fas fa-chevron-right ms-1"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2B. Verse History Section (Tracks Clicked / Presented Verses) -->
+          <div class="bible-history-tray" id="bibleHistoryTray">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <div class="d-flex align-items-center gap-2">
+                <span class="small fw-bold text-uppercase text-secondary" style="font-size: 10.5px; letter-spacing: 0.5px;">
+                  <i class="fas fa-clock-rotate-left text-warning me-1"></i> Verse History
+                </span>
+                <span class="badge bg-dark border border-secondary text-muted font-mono" id="bibleHistoryCount" style="font-size: 10px;">0</span>
+              </div>
+              <button type="button" class="btn btn-sm btn-link text-secondary text-decoration-none p-0" id="bibleClearHistoryBtn" title="Clear All History" style="font-size: 11px;">
+                <i class="fas fa-trash-can me-1"></i> Clear
+              </button>
+            </div>
+            <div class="bible-history-scroll" id="bibleHistoryList">
+              <span class="text-secondary small fst-italic bible-history-empty" style="font-size: 11px;">No verse clicked yet. Click any verse to trigger live and add to history.</span>
+            </div>
+          </div>
+
+          <!-- 3. Parallel Comparison Table Container -->
+          <div class="bible-table-wrapper" id="bibleTableWrapper">
+            <table class="bible-parallel-table" id="bibleVersesTable">
+              <thead>
+                <tr id="bibleTableHeaderRow">
+                  <th class="col-verse-num text-center">#</th>
+                  <th class="col-version text-uppercase letter-spacing-1"><i class="fas fa-book-bible text-warning me-1"></i> TAM</th>
+                  <th class="col-actions text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="bibleTableBody">
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-secondary">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-2 text-warning"></i>
+                    <p class="mb-0 small">Connecting to Bible Engine...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Table Bottom Status Bar -->
+          <div class="d-flex justify-content-between align-items-center px-1 flex-shrink-0 text-secondary" style="font-size: 11px;">
+            <span id="bibleTableStatusText">Loading scripture index...</span>
+            <span class="font-mono text-cyan"><i class="fas fa-rss me-1"></i> Live RSS: /api/bible/rss/live</span>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ====================================================================
+           RIGHT SIDEBAR: Screen Output Dropdown + 6 Interactive Tabs
+           ==================================================================== -->
+      <aside class="col-sidebar-right">
+        <!-- Mobile Drawer Close Header (Only on Tablet/Mobile) -->
+        <div class="d-flex justify-content-between align-items-center d-lg-none pb-2 border-bottom border-secondary mb-1">
+          <span class="small fw-bold text-white text-uppercase">
+            <i class="fas fa-sliders text-orange me-1"></i> Studio Tools Drawer
+          </span>
+          <button type="button" class="btn btn-sm btn-dark border-secondary text-secondary" id="rightSidebarCloseBtn" title="Close Drawer">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- ------------------------------------------------------------------
+             TOP: Screen Output with Screen Selector Dropdown
+             ------------------------------------------------------------------ -->
+        <div class="card bg-surface border-subtle shadow-sm p-2">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-bold text-uppercase text-secondary">
+              <i class="fas fa-tv text-cyan me-1"></i> Screen Output
+            </span>
+            <div class="d-flex align-items-center gap-1">
+              <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto py-0 px-2" id="screenSelectorDropdown" style="font-size: 11.5px; height: 28px;">
+                <option value="audience">Sony TV (Audience)</option>
+                <option value="stage_1">Stage Screen (Stage)</option>
+                <option value="stage_2">ATEM (Stage)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Single Selected Screen Live Preview Box -->
+          <div class="single-screen-preview-container" id="singleScreenPreviewBox">
+            <div class="screen-preview-box">
+              <div class="preview-thumbnail-wrapper" id="singleScreenThumbWrapper">
+                <div class="text-muted small text-center p-3">
+                  <i class="fas fa-spinner fa-spin me-1"></i> Connecting to display...
+                </div>
+              </div>
+            </div>
+            <!-- Subtitle info for selected screen -->
+            <div class="d-flex justify-content-between align-items-center mt-1 px-1">
+              <span class="small text-muted font-mono" id="singleScreenTypeLabel">Audience Display</span>
+              <span class="badge-prop badge-success" id="singleScreenStatusBadge">ACTIVE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------------
+             SINGLE ROW COMPACT LAYER CLEARS BAR (Below Screen Output)
+             | Clear All | Video | Media | Slide | Announcement | Props | Msg | Audio |
+             ------------------------------------------------------------------ -->
+        <div class="card bg-surface border-subtle shadow-sm p-1 px-2 my-1">
+          <div class="clear-icons-row" id="sidebarClearsRow">
+            <!-- Clear All -->
+            <button type="button" class="btn-clear-icon btn-clear-icon-all" id="clearAllBtn" title="Clear All Layers (Esc / Ctrl+Shift+C)">
+              <i class="fas fa-ban"></i>
+              <span class="clear-icon-label">All</span>
+            </button>
+            <div class="clear-icon-divider"></div>
+            <!-- Video Input -->
+            <button type="button" class="btn-clear-icon" id="clearVideoBtn" data-layer="video_input" title="Clear Live Video Input">
+              <i class="fas fa-video text-cyan"></i>
+              <span class="clear-icon-label">Video</span>
+            </button>
+            <!-- Media -->
+            <button type="button" class="btn-clear-icon" id="clearMediaBtn" data-layer="media" title="Clear Background Media Layer">
+              <i class="fas fa-photo-film text-cyan"></i>
+              <span class="clear-icon-label">Media</span>
+            </button>
+            <!-- Slide -->
+            <button type="button" class="btn-clear-icon" id="clearSlideBtn" data-layer="slide" title="Clear Slide Text Layer">
+              <i class="fas fa-font text-orange"></i>
+              <span class="clear-icon-label">Slide</span>
+            </button>
+            <!-- Announcement -->
+            <button type="button" class="btn-clear-icon" id="clearAnnounceBtn" data-layer="announcements" title="Clear Announcements Layer">
+              <i class="fas fa-scroll text-warning"></i>
+              <span class="clear-icon-label">Announce</span>
+            </button>
+            <!-- Props -->
+            <button type="button" class="btn-clear-icon" id="clearPropsBtn" data-layer="props" title="Clear Props & Overlays Layer">
+              <i class="fas fa-shapes text-purple"></i>
+              <span class="clear-icon-label">Props</span>
+            </button>
+            <!-- Message -->
+            <button type="button" class="btn-clear-icon" id="clearMessagesBtn" data-layer="messages" title="Clear Stage & Screen Messages">
+              <i class="fas fa-comment-dots text-warning"></i>
+              <span class="clear-icon-label">Msg</span>
+            </button>
+            <!-- Audio -->
+            <button type="button" class="btn-clear-icon" id="clearAudioBtn" data-layer="audio" title="Clear Audio Playback">
+              <i class="fas fa-volume-xmark text-success"></i>
+              <span class="clear-icon-label">Audio</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ------------------------------------------------------------------
+             BOTTOM: 6 Interactive Tabs Drawer
+             Audio | Stage | Timer | Message | Props | Macros
+             (APIs triggered on-demand when user clicks each tab)
+             ------------------------------------------------------------------ -->
+        <div class="card bg-surface border-subtle shadow-sm p-2 flex-grow-1 d-flex flex-column overflow-hidden">
+          
+          <!-- Nav Tabs Header -->
+          <ul class="nav nav-pills nav-fill right-drawer-tabs border-bottom border-secondary pb-2 mb-2" id="rightControlTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-audio-btn" data-bs-toggle="pill" data-bs-target="#tab-audio-content" type="button" role="tab" data-tab-name="audio" title="Audio Playlists & Pads">
+                <i class="fas fa-music"></i>
+                <span>Audio</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-stage-btn" data-bs-toggle="pill" data-bs-target="#tab-stage-content" type="button" role="tab" data-tab-name="stage" title="Stage Screen Layouts & Messages">
+                <i class="fas fa-chalkboard-user"></i>
+                <span>Stage</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-timer-btn" data-bs-toggle="pill" data-bs-target="#tab-timer-content" type="button" role="tab" data-tab-name="timer" title="Timers & Countdowns">
+                <i class="fas fa-clock"></i>
+                <span>Timer</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-message-btn" data-bs-toggle="pill" data-bs-target="#tab-message-content" type="button" role="tab" data-tab-name="message" title="Screen Messages">
+                <i class="fas fa-bullhorn"></i>
+                <span>Msg</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-props-btn" data-bs-toggle="pill" data-bs-target="#tab-props-content" type="button" role="tab" data-tab-name="props" title="Overlay Props">
+                <i class="fas fa-shapes"></i>
+                <span>Props</span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-macros-btn" data-bs-toggle="pill" data-bs-target="#tab-macros-content" type="button" role="tab" data-tab-name="macros" title="Macros & Automation">
+                <i class="fas fa-bolt"></i>
+                <span>Macros</span>
+              </button>
+            </li>
+          </ul>
+
+          <!-- Tabs Content Body -->
+          <div class="tab-content flex-grow-1 overflow-y-auto" id="rightControlTabsContent">
+
+            <!-- TAB 1: AUDIO (Playlists, Pads & Audio Trigger) -->
+            <div class="tab-pane fade show active h-100" id="tab-audio-content" role="tabpanel">
+              <div class="d-flex flex-column gap-2 h-100">
+                <!-- Audio Playlists Selector -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="small fw-bold text-white"><i class="fas fa-folder-open text-orange me-1"></i> Audio Sets:</span>
+                  <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto py-0 px-2" id="audioPlaylistSelect" style="font-size: 11px; height: 26px;">
+                    <option>Loading audio...</option>
+                  </select>
+                </div>
+                <!-- Transport controls -->
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-outline-success flex-fill py-1 fw-bold" id="audioPlayBtn"><i class="fas fa-play me-1"></i>Play</button>
+                  <button class="btn btn-sm btn-outline-warning flex-fill py-1 fw-bold" id="audioPauseBtn"><i class="fas fa-pause me-1"></i>Pause</button>
+                  <button class="btn btn-sm btn-outline-danger flex-fill py-1 fw-bold" id="audioClearBtn"><i class="fas fa-stop me-1"></i>Stop</button>
+                </div>
+                <!-- Track list -->
+                <div class="audio-tracks-scroll flex-grow-1 border border-secondary rounded p-1" id="audioTracksList">
+                  <div class="text-muted small p-3 text-center">Select an audio playlist to view tracks</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: STAGE (Screen Layouts & Stage Message) -->
+            <div class="tab-pane fade h-100" id="tab-stage-content" role="tabpanel">
+              <div class="d-flex flex-column gap-3 h-100">
+                
+                <!-- Stage Screens List Line by Line -->
+                <div>
+                  <span class="small fw-bold text-secondary text-uppercase d-block mb-2">
+                    <i class="fas fa-tv text-purple me-1"></i> Stage Screens & Layouts:
+                  </span>
+                  
+                  <!-- Screen 1: Stage Screen -->
+                  <div class="card bg-dark border-secondary p-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small fw-bold text-white"><i class="fas fa-desktop text-purple me-1"></i> Stage Screen</span>
+                      <select class="form-select form-select-sm bg-black text-white border-secondary w-auto py-0 px-2 stage-layout-selector" id="stageScreenLayoutSelect" data-screen-id="35996d64-e6f3-470b-be04-ed040429a1bd" style="font-size: 11px; height: 26px;">
+                        <option>Loading layouts...</option>
+                      </select>
+                    </div>
+                    <div class="stage-slide-mini-preview p-1 rounded bg-black text-secondary small font-mono text-truncate" id="stageScreenCurrentSlide">
+                      Current Stage Text: Loading...
+                    </div>
+                  </div>
+
+                  <!-- Screen 2: ATEM Screen -->
+                  <div class="card bg-dark border-secondary p-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small fw-bold text-white"><i class="fas fa-video text-cyan me-1"></i> ATEM Screen</span>
+                      <select class="form-select form-select-sm bg-black text-white border-secondary w-auto py-0 px-2 stage-layout-selector" id="atemScreenLayoutSelect" data-screen-id="d99c1e1c-5a64-415a-a1fb-35a559170863" style="font-size: 11px; height: 26px;">
+                        <option>Loading layouts...</option>
+                      </select>
+                    </div>
+                    <div class="stage-slide-mini-preview p-1 rounded bg-black text-secondary small font-mono text-truncate" id="atemScreenCurrentSlide">
+                      Current ATEM Text: Loading...
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stage Message Section -->
+                <div class="border-top border-secondary pt-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-bold text-secondary text-uppercase">
+                      <i class="fas fa-bullhorn text-danger me-1"></i> Stage Message
+                    </span>
+                    <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none small" id="clearStageMsgBtn2">
+                      <i class="fas fa-trash-can me-1"></i>Clear
+                    </button>
+                  </div>
+                  <div class="input-group input-group-sm mb-1">
+                    <input type="text" id="stageMessageInput" class="form-control bg-dark text-white border-secondary" placeholder="Message for pulpit / musicians...">
+                    <button class="btn btn-danger" id="sendStageMessageBtn" title="Send to Stage Displays">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                  <div class="small text-muted" id="stageMsgCurrentStatus" style="font-size: 10.5px;">No active stage message</div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- TAB 3: TIMERS (List Timers & Highlight Live) -->
+            <div class="tab-pane fade h-100" id="tab-timer-content" role="tabpanel">
+              <div class="d-flex flex-column gap-2 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="small fw-bold text-white"><i class="fas fa-stopwatch text-orange me-1"></i> Active Timers</span>
+                  <button class="btn btn-sm btn-link text-secondary p-0 text-decoration-none" id="refreshTimersBtn"><i class="fas fa-rotate"></i></button>
+                </div>
+                <div class="timers-scroll-list flex-grow-1" id="timersListContainer">
+                  <div class="text-muted small p-3 text-center"><i class="fas fa-spinner fa-spin me-1"></i> Loading timers...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 4: MESSAGES (Edit & Trigger Screen Messages) -->
+            <div class="tab-pane fade h-100" id="tab-message-content" role="tabpanel">
+              <div class="d-flex flex-column gap-2 h-100">
+                <span class="small fw-bold text-white"><i class="fas fa-comment-dots text-warning me-1"></i> Screen Messages:</span>
+                <div class="messages-scroll-list flex-grow-1" id="messagesListContainer">
+                  <div class="text-muted small p-3 text-center"><i class="fas fa-spinner fa-spin me-1"></i> Loading messages...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 5: PROPS (List & Toggle Props) -->
+            <div class="tab-pane fade h-100" id="tab-props-content" role="tabpanel">
+              <div class="d-flex flex-column gap-2 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="small fw-bold text-white"><i class="fas fa-shapes text-purple me-1"></i> Overlay Props</span>
+                  <button class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 11px;" id="clearAllPropsBtn">Clear All Props</button>
+                </div>
+                <div class="props-scroll-list flex-grow-1" id="propsListContainer">
+                  <div class="text-muted small p-3 text-center"><i class="fas fa-spinner fa-spin me-1"></i> Loading props...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 6: MACROS (List & Trigger Macros) -->
+            <div class="tab-pane fade h-100" id="tab-macros-content" role="tabpanel">
+              <div class="d-flex flex-column gap-2 h-100">
+                <span class="small fw-bold text-white"><i class="fas fa-bolt text-orange me-1"></i> Macros Pad:</span>
+                <div class="macros-grid-drawer flex-grow-1 d-grid gap-2" id="macrosListContainer" style="grid-template-columns: repeat(2, 1fr); align-content: start;">
+                  <div class="text-muted small p-3 text-center col-span-2"><i class="fas fa-spinner fa-spin me-1"></i> Loading macros...</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </aside>
+
     </div>
 
-    <!-- Stage Monitor QR Code Modal -->
-    <div class="modal fade" id="stageMonitorModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white border-secondary">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title">
-                        <i class="fas fa-qrcode me-2 text-warning"></i>Stage Monitor Access
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <div class="mb-3">
-                        <p class="text-muted small">Scan QR code or use the URL below to access Stage Monitor on another
-                            device</p>
-                        <div id="qrcode" class="d-flex justify-content-center mb-3"
-                            style="background: white; padding: 10px; border-radius: 10px;"></div>
-                        <div class="input-group mb-2">
-                            <input type="text" class="form-control-custom" id="stageMonitorUrl" readonly
-                                style="font-size: 12px;">
-                            <button class="btn btn-outline-secondary" onclick="copyStageMonitorUrl()">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                        </div>
-                        <a href="#" id="stageMonitorLink" class="btn btn-outline-warning btn-sm w-100" target="_blank">
-                            <i class="fas fa-external-link-alt"></i> Open Stage Monitor
-                        </a>
-                        <hr class="border-secondary my-3">
-                        <div class="small text-muted">
-                            <i class="fas fa-info-circle"></i> Make sure both devices are on the same network
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 3. MOBILE BOTTOM NAVIGATION & SIDEBAR BACKDROP -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <script src="../js/script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <nav class="mobile-nav-bar">
+      <a href="#cues" class="mobile-nav-item active" data-tab="cues" id="mobNavCues" title="Show or Bible View">
+        <i class="fas fa-layer-group"></i>
+        <span>Presenter</span>
+      </a>
+      <a href="#clears" class="mobile-nav-item" data-tab="clears" id="mobNavClears" title="Quick Clears & Screens">
+        <i class="fas fa-eraser"></i>
+        <span>Clears</span>
+      </a>
+      <a href="#sets" class="mobile-nav-item" data-tab="sets" id="mobNavSets" title="Playlists & Songs">
+        <i class="fas fa-list-check"></i>
+        <span>Library</span>
+      </a>
+      <a href="#drawer" class="mobile-nav-item" data-tab="drawer" id="mobNavDrawer" title="Audio, Stage & Timers">
+        <i class="fas fa-sliders"></i>
+        <span>Tools</span>
+      </a>
+      <a href="#stage" class="mobile-nav-item" data-tab="stage" id="mobNavStage" title="Musician Confidence Monitor">
+        <i class="fas fa-chalkboard-user"></i>
+        <span>Stage</span>
+      </a>
+    </nav>
+
+  </div>
+
+  <!-- STAGE MONITOR QR CODE MODAL -->
+  <div class="modal fade" id="stageMonitorQRModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-surface border-secondary text-white shadow-lg">
+        <div class="modal-header border-secondary py-2">
+          <h5 class="modal-title fs-6 fw-bold text-orange d-flex align-items-center gap-2">
+            <i class="fas fa-qrcode"></i> Stage Monitor Mobile Access
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeStageMonitorQRBtn"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <p class="text-secondary small mb-3">Musicians, singers, or speakers can scan this QR code with their phone or iPad to get the live Stage Confidence Monitor.</p>
+          <div id="stageMonitorQRCodeTarget" class="d-inline-flex justify-content-center p-3 bg-black rounded border border-secondary mb-3 shadow"></div>
+          <div class="input-group input-group-sm">
+            <input type="text" id="stageMonitorLinkInput" class="form-control bg-dark text-white border-secondary" readonly>
+            <button class="btn btn-warning fw-bold" id="copyStageMonitorLinkBtn"><i class="fas fa-copy"></i> Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHORD CHART VIEWER MODAL -->
+  <div class="modal fade" id="chordChartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-surface border-secondary text-white shadow-lg">
+        <div class="modal-header border-secondary py-2">
+          <h5 class="modal-title fs-6 fw-bold text-purple d-flex align-items-center gap-2">
+            <i class="fas fa-music"></i> Song Chord Chart
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeChordChartBtn"></button>
+        </div>
+        <div class="modal-body text-center p-2 bg-black">
+          <img id="chordChartModalImg" src="" alt="Chord Chart" class="img-fluid rounded" style="max-height: 75vh;" onerror="this.alt='No chord chart available for this presentation'; this.style.display='none';">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTI-MODE SONG SEARCH MODAL (Ctrl+K / Cmd+K) -->
+  <div class="pro-search-modal-backdrop" id="proSongSearchModal" tabindex="-1" aria-hidden="true" style="display: none;">
+    <div class="pro-search-dialog">
+      
+      <!-- Modal Header & Search Bar -->
+      <div class="pro-search-header">
+        <div class="pro-search-input-wrapper">
+          <i class="fas fa-magnifying-glass pro-search-icon"></i>
+          <input type="text" id="proSongSearchInput" class="pro-search-input font-tamil" placeholder="Search songs across all libraries (English, தமிழ், Hindi)..." autocomplete="off" spellcheck="false">
+          <button type="button" class="pro-search-clear-btn" id="proSongSearchClearBtn" title="Clear input" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <span class="pro-search-badge-kbd">ESC</span>
+        </div>
+        <button type="button" class="pro-search-close-btn" id="proSongSearchCloseBtn" title="Close Search (Esc)">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Active Filter Pill Bar (Visible when Library or Author filter is engaged) -->
+      <div class="pro-search-filter-bar" id="proSearchActiveFilterBar" style="display: none;">
+        <span class="pro-search-filter-label">Active Filter:</span>
+        <div class="pro-search-filter-pill" id="proSearchActiveFilterPill">
+          <i class="fas fa-filter text-orange"></i>
+          <span id="proSearchActiveFilterText">Library: Tamil Worship</span>
+          <button type="button" class="pro-search-filter-remove" id="proSearchFilterRemoveBtn" title="Remove filter">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode Navigation Tabs & Result Stats -->
+      <div class="pro-search-modes-bar">
+        <div class="pro-search-tabs" role="tablist">
+          <button type="button" class="pro-search-tab active" data-mode="free" id="searchModeFreeTab">
+            <i class="fas fa-globe"></i>
+            <span>Free Search</span>
+            <small class="tab-subtitle d-none d-sm-inline">All Libraries</small>
+          </button>
+          <button type="button" class="pro-search-tab" data-mode="library" id="searchModeLibraryTab">
+            <i class="fas fa-book-bookmark"></i>
+            <span>By Library</span>
+            <small class="tab-subtitle d-none d-sm-inline" id="selectedLibLabel">Select</small>
+          </button>
+          <button type="button" class="pro-search-tab" data-mode="author" id="searchModeAuthorTab">
+            <i class="fas fa-user-pen"></i>
+            <span>By Author / Artist</span>
+            <small class="tab-subtitle d-none d-sm-inline" id="selectedAuthorLabel">Select</small>
+          </button>
+        </div>
+
+        <!-- Live Result Counter / Status -->
+        <div class="pro-search-stats" id="proSearchResultStats">
+          <i class="fas fa-music text-orange me-1"></i>
+          <span id="proSearchCountText">0 songs</span>
+        </div>
+      </div>
+
+      <!-- Context Drawer: Mode 2 Library Select Dropdown -->
+      <div class="pro-search-context-tray" id="proSearchLibraryTray" style="display: none;">
+        <div class="pro-search-tray-inner">
+          <label for="proSearchLibrarySelect" class="pro-tray-label">
+            <i class="fas fa-filter text-cyan me-1"></i> Filter By Library:
+          </label>
+          <select id="proSearchLibrarySelect" class="form-select form-select-sm pro-search-select font-tamil">
+            <option value="">-- All Libraries --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Context Drawer: Mode 3 Author / Artist Avatar Tray -->
+      <div class="pro-search-context-tray" id="proSearchAuthorTray" style="display: none;">
+        <div class="pro-search-tray-inner">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="pro-tray-label"><i class="fas fa-users text-purple me-1"></i> Filter By Worship Leader / Artist:</span>
+            <span class="text-muted small" id="proSearchAuthorCountText">0 artists</span>
+          </div>
+          <div class="pro-author-avatar-carousel" id="proSearchAuthorCarousel">
+            <!-- Populated dynamically with author avatar bubbles -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Grid Container (Scrollable) -->
+      <div class="pro-search-body">
+        <div class="pro-search-grid" id="proSearchResultsGrid">
+          <!-- Populated with song cards -->
+        </div>
+        
+        <!-- Loading Spinner State -->
+        <div class="pro-search-state-view" id="proSearchLoadingView" style="display: none;">
+          <div class="spinner-border text-warning" role="status"></div>
+          <p class="mt-2 text-secondary small">Indexing ProPresenter song libraries...</p>
+        </div>
+
+        <!-- Empty Results State -->
+        <div class="pro-search-state-view" id="proSearchEmptyView" style="display: none;">
+          <i class="fas fa-music-slash fa-3x text-secondary mb-3 opacity-50"></i>
+          <h5 class="text-light">No matching songs found</h5>
+          <p class="text-secondary small mb-3" id="proSearchEmptyMessage">Try different keywords or switch to Free Search across all libraries.</p>
+          <button type="button" class="btn btn-sm btn-outline-warning" id="proSearchResetFiltersBtn">
+            <i class="fas fa-rotate-left me-1"></i> Reset Search & Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer Information & Status -->
+      <div class="pro-search-footer">
+        <div class="d-flex align-items-center gap-3 small text-secondary">
+          <span><kbd>Enter</kbd> Trigger Live</span>
+          <span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span>
+          <span><kbd>Esc</kbd> Close</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 small text-secondary" id="proSearchIndexingStatus">
+          <span class="live-dot connected" style="width: 7px; height: 7px;"></span>
+          <span>In-Memory Index Ready</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       PROPRESENTER DYNAMIC RSS BIBLE FEEDS POPUP MODAL (User Reference Design)
+       ==================================================================== -->
+  <div class="modal fade" id="bibleRssModal" tabindex="-1" aria-labelledby="bibleRssModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1080px;">
+      <div class="modal-content rss-custom-modal-content text-light shadow-lg overflow-hidden">
+        
+        <!-- Modal Header -->
+        <div class="rss-custom-modal-header d-flex justify-content-between align-items-center">
+          <!-- Left: Gradient App Badge + RSS Icon Square + Title -->
+          <div class="d-flex align-items-center gap-2">
+            <div class="rss-app-gradient-badge shadow-sm" title="ProPresenter Live Scripture"></div>
+            <div class="rss-app-icon-badge shadow-sm">
+              <i class="fas fa-rss"></i>
+            </div>
+            <h5 class="modal-title fw-bold text-white mb-0 ms-1 font-heading" id="bibleRssModalLabel" style="font-size: 16.5px; letter-spacing: -0.2px;">
+              ProPresenter Dynamic RSS Bible Feeds
+            </h5>
+          </div>
+
+          <!-- Right: Host Switcher Toggle Pill + Close Icon -->
+          <div class="d-flex align-items-center gap-3">
+            <div class="rss-host-pill-container" id="rssModalHostToggleGroup">
+              <button type="button" class="rss-host-pill-btn active" id="rssHostLanBtn" title="Use Church LAN IP (Recommended for network ProPresenter)">
+                <i class="fas fa-network-wired me-1"></i> LAN (<span id="rssLanIpLabel">192.168.0.200</span>)
+              </button>
+              <button type="button" class="rss-host-pill-btn" id="rssHostLocalBtn" title="Use Localhost">
+                <span class="rss-host-dot me-1"></span> Localhost
+              </button>
+            </div>
+
+            <button type="button" class="rss-btn-close" data-bs-dismiss="modal" aria-label="Close" title="Close (Esc)">
+              <i class="fas fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body (Two-Column: Left = Version List | Right = 3 RSS Feed Sets + Config Popover) -->
+        <div class="modal-body p-0">
+          <div class="row g-0" style="min-height: 520px;">
+            
+            <!-- LEFT PART: Version Selector Sidebar -->
+            <div class="col-12 col-md-4 col-lg-3 rss-modal-sidebar d-flex flex-column justify-content-between">
+              <div>
+                <!-- Sidebar Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+                  <span class="rss-sidebar-title">
+                    <i class="fas fa-book-bible text-warning me-1"></i> BIBLE VERSIONS
+                  </span>
+                  <div class="rss-sidebar-check-box" title="Available database versions">
+                    <i class="far fa-square-check text-secondary" style="font-size: 12.5px;"></i>
+                  </div>
+                </div>
+
+                <!-- Scrollable Version List -->
+                <div class="rss-modal-version-list" id="rssModalVersionList">
+                  <!-- Dynamically populated: King James Version (KJV), Tamil Bible (TAM), etc. -->
+                </div>
+              </div>
+
+              <!-- Sidebar Footer -->
+              <div class="rss-sidebar-footer text-secondary small pt-2 border-top border-secondary border-opacity-25" style="font-size: 11px;">
+                <i class="fas fa-database text-cyan me-1"></i> Cloudflare D1 Versions
+              </div>
+            </div>
+
+            <!-- RIGHT PART: 3 Sets of RSS Feed Cards + Feed Configuration Popover -->
+            <div class="col-12 col-md-8 col-lg-9 rss-modal-main position-relative d-flex flex-column justify-content-between">
+              <div>
+                <!-- Active Version Banner -->
+                <div class="rss-active-version-banner d-flex justify-content-between align-items-center mb-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rss-app-gradient-badge-sm"></div>
+                    <div>
+                      <div class="rss-banner-title">
+                        <span id="rssModalActiveVerName" class="text-white fw-bold">King James Version</span>
+                        <span class="text-warning fw-semibold"> - Live Presented Sync</span>
+                      </div>
+                      <div class="text-secondary small" style="font-size: 11px;" id="rssModalActiveVerLang">Language: English</div>
+                    </div>
+                  </div>
+                  <span class="rss-live-sync-badge">
+                    <i class="fas fa-satellite-dish me-1"></i> Live Presented Sync
+                  </span>
+                </div>
+
+                <!-- 3 Feed Cards (Full Verse, Verse Text Only, Reference Citation Only) -->
+                <div class="d-flex flex-column gap-2 mb-2" id="rssFeedCardsRow">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- Setup Tip Footer -->
+              <div class="rss-setup-tip-bar d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fas fa-circle-info text-cyan" style="font-size: 13px;"></i>
+                  <span><strong>ProPresenter Setup:</strong> Add Text box &rarr; Inspector &rarr; <strong>Linked Text</strong> &rarr; <strong>RSS Feed</strong> &rarr; Paste URL &rarr; Update Interval <strong>1s</strong>.</span>
+                </div>
+                <span class="text-warning font-mono fw-semibold" style="font-size: 11px;">
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="rss-custom-modal-footer d-flex justify-content-between align-items-center">
+          <span class="text-secondary small d-flex align-items-center gap-2" style="font-size: 11.5px;">
+            <i class="fas fa-circle-check text-success"></i>
+            Compatible with ProPresenter 7+ Linked Text layers
+          </span>
+          <button type="button" class="btn-rss-modal-close px-3 py-1" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       LIBRARY & PLAYLIST POPUP MODAL (Card Grid & List/Grid Drilldown)
+       ==================================================================== -->
+  <div class="modal fade" id="libraryPlaylistModal" tabindex="-1" aria-labelledby="libraryPlaylistModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable" style="max-width: 1100px;">
+      <div class="modal-content bg-surface border-subtle text-light shadow-2xl rounded-4 overflow-hidden">
+        
+        <!-- Modal Top Bar -->
+        <div class="modal-header border-bottom border-secondary bg-dark bg-opacity-75 py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          
+          <!-- Left: Title & Mode Switcher -->
+          <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-folder-tree text-warning fs-5"></i>
+              <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="libraryPlaylistModalLabel">Studio Catalog</h5>
+            </div>
+
+            <!-- Library | Playlist Tab Switcher -->
+            <div class="catalog-mode-pills" role="tablist">
+              <button type="button" class="catalog-pill-btn active" id="catalogTabLibrary" data-catalog-mode="library">
+                <i class="fas fa-book-bookmark text-warning me-1"></i> Library
+                <span class="badge-prop badge-orange ms-1" id="catalogLibCount">0</span>
+              </button>
+              <button type="button" class="catalog-pill-btn" id="catalogTabPlaylist" data-catalog-mode="playlist">
+                <i class="fas fa-list-check text-cyan me-1"></i> Playlist
+                <span class="badge-prop badge-cyan ms-1" id="catalogPlaylistCount">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Search Input + Shortcut Kbd + Close -->
+          <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end" style="max-width: 440px;">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-black border-secondary text-warning">
+                <i class="fas fa-magnifying-glass"></i>
+              </span>
+              <input type="text" class="form-control bg-dark text-white border-secondary font-tamil" id="catalogSearchInput" placeholder="Filter libraries, playlists, or songs..." autocomplete="off">
+            </div>
+            <kbd class="bible-kbd d-none d-sm-inline">Ctrl+L</kbd>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="closeCatalogModalBtn"></button>
+          </div>
+
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body p-3" style="min-height: 520px; max-height: 75vh; overflow-y: auto;">
+          
+          <!-- 1. BREADCRUMB / DRILLDOWN HEADER (Visible when inside a selected library or playlist) -->
+          <div class="catalog-drilldown-header d-none justify-content-between align-items-center mb-3 p-2 rounded-3 bg-dark bg-opacity-50 border border-secondary" id="catalogDrilldownHeader">
+            <div class="d-flex align-items-center gap-2">
+              <button type="button" class="btn btn-sm btn-outline-warning fw-bold d-flex align-items-center gap-1" id="catalogBackBtn">
+                <i class="fas fa-arrow-left"></i> <span id="catalogBackBtnLabel">Back to Libraries</span>
+              </button>
+              <div class="vr bg-secondary mx-1"></div>
+              <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-folder-open text-warning fs-5" id="catalogActiveIcon"></i>
+                <div>
+                  <h6 class="mb-0 fw-bold text-white font-tamil" id="catalogActiveTitle">Library Name</h6>
+                  <span class="small text-secondary" id="catalogActiveSub">0 Songs available</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- View Switcher: List View vs Grid View -->
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-secondary fw-semibold d-none d-sm-inline">Layout:</span>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-dark border-secondary active" id="catalogViewListBtn" title="List View">
+                  <i class="fas fa-list"></i>
+                </button>
+                <button type="button" class="btn btn-dark border-secondary" id="catalogViewGridBtn" title="Grid View">
+                  <i class="fas fa-grip"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. CONTAINER 1: Libraries Cards Grid (State A) -->
+          <div id="catalogLibrariesGrid" class="catalog-cards-grid">
+            <div class="text-center p-4 text-muted col-12"><i class="fas fa-spinner fa-spin me-1"></i> Loading libraries...</div>
+          </div>
+
+          <!-- 3. CONTAINER 2: Playlists Cards Grid (State C) -->
+          <div id="catalogPlaylistsGrid" class="catalog-cards-grid d-none">
+            <div class="text-center p-4 text-muted col-12"><i class="fas fa-spinner fa-spin me-1"></i> Loading playlists...</div>
+          </div>
+
+          <!-- 4. CONTAINER 3: Songs View (State B & D: List or Grid) -->
+          <div id="catalogSongsContainer" class="d-none">
+            <div id="catalogSongsList" class="catalog-songs-list-view">
+              <!-- Dynamically populated songs -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer border-top border-secondary py-2 px-3 bg-dark bg-opacity-50 d-flex justify-content-between align-items-center">
+          <span class="small text-secondary" id="catalogFooterStatus">
+            <i class="fas fa-info-circle text-cyan me-1"></i> Click any song to present immediately in slide deck
+          </span>
+          <button type="button" class="btn btn-sm btn-dark border-secondary px-3" data-bs-dismiss="modal">Close (Esc)</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       KEYBOARD SHORTCUTS REFERENCE MODAL (Ctrl+/)
+       ==================================================================== -->
+  <div class="modal fade" id="keyboardShortcutsModal" tabindex="-1" aria-labelledby="keyboardShortcutsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-surface border-subtle text-light shadow-2xl rounded-4">
+        <div class="modal-header border-secondary py-2 px-3">
+          <h5 class="modal-title fs-6 fw-bold text-warning d-flex align-items-center gap-2" id="keyboardShortcutsModalLabel">
+            <i class="fas fa-keyboard"></i> ProPresenter Remote Shortcuts
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3">
+          <table class="table table-dark table-borderless table-sm mb-0">
+            <tbody>
+              <tr><td class="text-secondary">Library & Playlists Catalog</td><td class="text-end"><kbd class="bible-kbd">Ctrl+L</kbd> / <kbd class="bible-kbd">Cmd+L</kbd></td></tr>
+              <tr><td class="text-secondary">Global Song Search</td><td class="text-end"><kbd class="bible-kbd">Ctrl+K</kbd> / <kbd class="bible-kbd">Cmd+K</kbd></td></tr>
+              <tr><td class="text-secondary">Bible Scripture Search Focus</td><td class="text-end"><kbd class="bible-kbd">Ctrl+B</kbd> / <kbd class="bible-kbd">Cmd+B</kbd></td></tr>
+              <tr><td class="text-secondary">ProPresenter RSS URLs Modal</td><td class="text-end"><kbd class="bible-kbd">Ctrl+R</kbd></td></tr>
+              <tr><td class="text-secondary">Stage Monitor QR Access</td><td class="text-end"><kbd class="bible-kbd">Ctrl+M</kbd></td></tr>
+              <tr><td class="text-secondary">Switch to Presentation Show View</td><td class="text-end"><kbd class="bible-kbd">Ctrl+1</kbd></td></tr>
+              <tr><td class="text-secondary">Switch to Bible Scripture View</td><td class="text-end"><kbd class="bible-kbd">Ctrl+2</kbd></td></tr>
+              <tr><td class="text-secondary">Next Presentation Slide</td><td class="text-end"><kbd class="bible-kbd">Space</kbd> / <kbd class="bible-kbd">&rarr;</kbd></td></tr>
+              <tr><td class="text-secondary">Previous Presentation Slide</td><td class="text-end"><kbd class="bible-kbd">&larr;</kbd></td></tr>
+              <tr><td class="text-secondary">Clear All Layers</td><td class="text-end"><kbd class="bible-kbd">Ctrl+Shift+C</kbd></td></tr>
+              <tr><td class="text-secondary">Close Any Modal / Dialog</td><td class="text-end"><kbd class="bible-kbd">Esc</kbd></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOTSTRAP 5 BUNDLE JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="../js/config.js"></script>
+  <script src="../js/api/api-client.js"></script>
+  <script src="../js/api/stream-client.js"></script>
+  <script src="../js/state/store.js"></script>
+  <script src="../js/controllers/screen-monitor.js"></script>
+  <script src="../js/controllers/presentation-ctrl.js"></script>
+  <script src="../js/controllers/stage-ctrl.js"></script>
+  <script src="../js/controllers/quick-clear-ctrl.js"></script>
+  <script src="../js/controllers/playlist-ctrl.js"></script>
+  <script src="../js/controllers/right-tabs-ctrl.js"></script>
+  <script src="../js/controllers/song-search-ctrl.js"></script>
+  <script src="../js/controllers/bible-ctrl.js"></script>
+  <script src="../js/app.js"></script>
+
 </body>
-
 </html>
