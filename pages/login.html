@@ -1,42 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProPresenter Control</title>
-    
-    <link rel="icon" type="image/jpg" href="/src/Propresenter.jpg">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect - ProPresenter Studio Controller</title>
+  <link rel="icon" type="image/jpg" href="../src/Propresenter.jpg">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Theme CSS -->
+  <link rel="stylesheet" href="../css/theme.css">
+  <link rel="stylesheet" href="../css/login.css">
 </head>
+<body class="bg-canvas text-light">
 
-<body>
-
-    <div class="container-fluid bg-image d-flex align-items-center justify-content-end">
-        <div class="login-card me-5">
-            <h5 class="mb-4">Connect to ProPresenter</h5>
-
-            <form id="connectionForm">
-                <div class="mb-3">
-                    <label class="form-label text-light">IP Address</label>
-                    <input type="text" class="form-control" id="ipAddress" placeholder="Enter IP Address" value="192.168.1.11">
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label text-light">Port</label>
-                    <input type="number" class="form-control" id="port" placeholder="Enter Port" value="1025">
-                </div>
-
-                <button type="submit" class="btn btn-connect w-100 py-2" id="connectBtn">
-                    Connect
-                </button>
-            </form>
+  <div class="login-wrapper min-vh-100 d-flex align-items-center justify-content-center p-3">
+    <div class="login-card-container col-12 col-sm-9 col-md-6 col-lg-4 col-xl-3">
+      
+      <!-- Studio Card -->
+      <div class="card bg-surface border-subtle shadow-lg rounded-4 overflow-hidden">
+        
+        <!-- Header Banner -->
+        <div class="card-header bg-dark bg-opacity-50 border-bottom border-secondary p-4 text-center">
+          <div class="d-inline-flex align-items-center justify-content-center p-2 rounded-3 bg-black border border-secondary mb-3 shadow">
+            <img src="../src/Propresenter.jpg" alt="ProPresenter" class="rounded" style="width: 44px; height: 44px; object-fit: cover;">
+          </div>
+          <h4 class="fw-bold mb-1 text-white">ProPresenter Remote</h4>
+          <p class="text-secondary small mb-0 font-mono">OpenAPI Studio Controller</p>
         </div>
+
+        <!-- Form Body -->
+        <div class="card-body p-4">
+          <form id="connectionForm">
+            
+            <!-- Host IP Field -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="ipAddress" class="form-label small fw-bold text-secondary mb-0">Host IP Address</label>
+                <div class="d-flex gap-1">
+                  <button type="button" class="badge bg-secondary border-0 text-white cursor-pointer px-2 py-1 preset-ip" data-ip="192.168.0.200">192.168.0.200</button>
+                  <button type="button" class="badge bg-dark border border-secondary text-secondary cursor-pointer px-2 py-1 preset-ip" data-ip="localhost">localhost</button>
+                </div>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-black border-secondary text-orange">
+                  <i class="fas fa-network-wired"></i>
+                </span>
+                <input type="text" class="form-control bg-dark text-white border-secondary" id="ipAddress" placeholder="e.g. 192.168.0.200" value="192.168.0.200" required>
+              </div>
+            </div>
+
+            <!-- Port Field -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="port" class="form-label small fw-bold text-secondary mb-0">Network API Port</label>
+                <div class="d-flex gap-1">
+                  <button type="button" class="badge bg-secondary border-0 text-white cursor-pointer px-2 py-1 preset-port" data-port="1025">1025 (Default)</button>
+                  <button type="button" class="badge bg-dark border border-secondary text-secondary cursor-pointer px-2 py-1 preset-port" data-port="50001">50001</button>
+                </div>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-black border-secondary text-orange">
+                  <i class="fas fa-plug"></i>
+                </span>
+                <input type="number" class="form-control bg-dark text-white border-secondary" id="port" placeholder="1025" value="1025" required>
+              </div>
+            </div>
+
+            <!-- User ID / Username Field (Future Configuration) -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="username" class="form-label small fw-bold text-secondary mb-0">Username / User ID</label>
+                <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 10px;">Future Config</span>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-black border-secondary text-secondary">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input type="text" class="form-control bg-dark text-white border-secondary" id="username" placeholder="e.g. admin or operator (optional)">
+              </div>
+            </div>
+
+            <!-- Password Field (Future Configuration) -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="password" class="form-label small fw-bold text-secondary mb-0">Password</label>
+                <span class="badge bg-dark border border-secondary text-secondary" style="font-size: 10px;">Future Config</span>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-black border-secondary text-secondary">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input type="password" class="form-control bg-dark text-white border-secondary" id="password" placeholder="Enter password (optional)">
+              </div>
+            </div>
+
+            <!-- Submit Button: Connect & Test -->
+            <button type="submit" class="btn btn-warning w-100 fw-bold py-2 shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2" id="connectBtn">
+              <i class="fas fa-bolt"></i> Connect & Open Website
+            </button>
+
+            <!-- Direct Entry Button: Open Studio Website Directly -->
+            <button type="button" class="btn btn-outline-warning w-100 fw-semibold py-2 shadow-sm d-flex align-items-center justify-content-center gap-2" id="directStudioBtn" title="Directly launch the Studio Controller website">
+              <i class="fas fa-desktop"></i> Open Website (Studio Controller)
+            </button>
+          </form>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer bg-dark bg-opacity-25 border-top border-secondary p-3 text-center d-flex flex-column gap-2">
+          <a href="/controller" class="text-warning text-decoration-none small d-inline-flex align-items-center justify-content-center gap-1 hover-orange fw-semibold" id="footerStudioLink" title="Launch Studio Controller website directly">
+            <i class="fas fa-arrow-right-to-bracket"></i> Launch Studio Controller Directly
+          </a>
+          <a href="/stage" class="text-secondary text-decoration-none small d-inline-flex align-items-center justify-content-center gap-1 hover-orange" id="footerStageLink">
+            <i class="fas fa-chalkboard-user"></i> Open Stage Confidence Monitor
+          </a>
+        </div>
+
+      </div>
+
     </div>
+  </div>
 
-    <script src="../js/login.js"></script>
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/login.js"></script>
 </body>
-
 </html>
