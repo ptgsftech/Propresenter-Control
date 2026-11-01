@@ -24,4 +24,3 @@ echo NOTE: Restart your CMD or PowerShell window for the changes to take effect.
 echo ==============================================================================
 echo.
 pause
-
