@@ -10,7 +10,7 @@ echo.
 
 setx CLOUDFLARE_ACCOUNT_ID "0b1c76e5e6b514a1bd0ef28aa0a348f5"
 setx CLOUDFLARE_DATABASE_ID "12c25273-ebbf-4206-b075-fbfbaca83de5"
-setx CLOUDFLARE_API_TOKEN "your_cloudflare_api_token_here"
+setx CLOUDFLARE_API_TOKEN "cfut_2Cai0xco27KgjCt2jQPGG5hwB5pRr66OTLzqa8lCd552134c"
 
 echo.
 echo ==============================================================================
