@@ -18,3 +18,9 @@ legacy/
 .env
 .env.*
 !.env.example
+
+# Environment setup scripts containing real tokens/credentials
+setup-env.bat
+setup-env.local.bat
+*.local.bat
+!setup-env.example.bat
