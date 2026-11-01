@@ -142,33 +142,22 @@ Open PowerShell or Terminal in the project root:
 npm install
 ```
 
-### Step 2: Configuration (`config.json`)
+### Step 2: Zero-Config Architecture & System Environment Variables
 
-To prevent GitHub push rejection (GitHub blocks `.env` files and detects live Cloudflare tokens via Push Protection), this project standardizes exclusively on **`config.json`**.
+This project requires **zero configuration files** (`.env` and `config.json` are completely removed, ensuring zero GitHub push protection blocks or secret leaks):
 
-#### 1. Repository Configuration (`config.json`):
-This file is tracked by git and contains church network settings with sanitized token placeholders:
-```json
-{
-  "PORT": 8080,
-  "PROPRESENTER_HOST": "192.168.0.200",
-  "PROPRESENTER_PORT": 1025,
-  "CLOUDFLARE_QUERY_URL": "https://api.cloudflare.com/client/v4/accounts/<YOUR_ACCOUNT_ID>/d1/database/<YOUR_DATABASE_ID>/query",
-  "CLOUDFLARE_API_TOKEN": "your_cloudflare_api_token_here"
-}
-```
-
-#### 2. Local Private Overrides (`config.local.json`):
-To use live Cloudflare API credentials on your local machine without ever exposing them to GitHub, create `config.local.json` in the root folder. It is automatically ignored by `.gitignore`:
-```json
-{
-  "CLOUDFLARE_QUERY_URL": "https://api.cloudflare.com/client/v4/accounts/YOUR_ACCOUNT/d1/database/YOUR_DB/query",
-  "CLOUDFLARE_API_TOKEN": "cfut_your_actual_private_token"
-}
-```
-
-> [!TIP]
-> `src/config.js` automatically loads `config.json` and merges `config.local.json` over it, so your private secrets stay 100% on your local machine while GitHub accepts all git pushes cleanly!
+1. **Web Server Port**: Statically set to **`8080`**.
+2. **ProPresenter Host & Port**: No backend configuration needed. When an operator opens the login screen (`pages/login.html`), they enter the ProPresenter machine IP and Port (default `192.168.0.200:1025`). The app generates the base URL (`http://<IP>:<PORT>`) and persists it in browser `localStorage` (`proPresenterBaseURL`) for direct API communication.
+3. **Cloudflare D1 Bible Database (System Environment Variables)**:
+   Credentials for the Bible Scripture Live Engine are read directly from your operating system environment variables (`process.env`). You can set them using the included batch file or via PowerShell:
+   - **Method A (Batch Script)**: Run **`setup-env.bat`** in CMD (sets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_DATABASE_ID`, and `CLOUDFLARE_API_TOKEN`).
+   - **Method B (CMD / PowerShell Command)**:
+     ```cmd
+     setx CLOUDFLARE_ACCOUNT_ID "0b1c76e5e6b514a1bd0ef28aa0a348f5"
+     setx CLOUDFLARE_DATABASE_ID "12c25273-ebbf-4206-b075-fbfbaca83de5"
+     setx CLOUDFLARE_API_TOKEN "your_actual_token_here"
+     ```
+   The backend dynamically frames the full Cloudflare D1 query URL using the Account ID and Database ID. No query URL variable or `.env` file needed!
 
 ### Step 3: ProPresenter Desktop Configuration
 1. Open **ProPresenter Preferences** (`Ctrl+,` or `Cmd+,`).
@@ -481,10 +470,9 @@ Requests to `/v1/*` are forwarded directly to ProPresenter on port 1025 with COR
 
 ```
 Propresenter-Control/
-├── config.json                  # Main JSON configuration (tracked in git, safe tokens)
-├── config.local.json            # Local machine private overrides (Git ignored)
 ├── PROJECT_SUMMARY.md           # Machine-readable AI agent context & handover guide
 ├── .gitignore                   # Git exclusion rules
+├── setup-env.bat                 # 1-Click interactive script to set Cloudflare environment variables
 ├── allow-firewall-8080.bat      # 1-Click Windows Firewall rule creator
 ├── package.json                 # Project manifest & npm scripts
 ├── server.js                    # Express.js reverse proxy & RSS scripture server
@@ -535,9 +523,10 @@ When continuing development or performing AI pair-programming on this repository
 1. **Human vs. AI Documentation Alignment**:
    - `README.md` is the primary human-facing guide for church tech teams, sound operators, and production setup.
    - `PROJECT_SUMMARY.md` is the dedicated context document for AI agents (Cursor, Claude, Copilot, Antigravity, etc.) when running in separate agent environments or starting fresh chats.
-2. **Central Configuration System**:
-   - Always load backend settings via `const config = require('./src/config')` or `process.env`.
-   - Never commit raw live secrets to public repositories; keep templates in `.example` files.
+2. **Zero-Config Architecture**:
+   - Backend runs on static port 8080 without requiring `.env` or config files.
+   - ProPresenter connection is driven by user input in the UI and stored in browser `localStorage`.
+   - Cloudflare D1 credentials are read strictly from system environment variables (`process.env`).
 3. **Reactive State Pattern**:
    - Use `store.subscribe('eventName', handler)` in controllers.
    - Use `store.setState({ key: value })` to notify subscribers across views.

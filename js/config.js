@@ -24,6 +24,8 @@ const AppConfig = {
     IP: 'proPresenterIP',
     /** @type {string} LocalStorage key for ProPresenter network API port */
     PORT: 'proPresenterPort',
+    /** @type {string} LocalStorage key for generated ProPresenter base URL */
+    BASE_URL: 'proPresenterBaseURL',
     /** @type {string} LocalStorage key for connection state flag */
     CONNECTED: 'proPresenterConnected',
     /** @type {string} LocalStorage key for cached ProPresenter version */
@@ -61,11 +63,12 @@ const AppConfig = {
     const queryIp = urlParams.get('ip');
     const queryPort = urlParams.get('port');
 
-    // 2. Read from localStorage or query parameters
+    // 2. Read from localStorage (including saved baseURL from user input)
+    let savedBaseURL = localStorage.getItem(this.STORAGE_KEYS.BASE_URL);
     let ip = queryIp || localStorage.getItem(this.STORAGE_KEYS.IP);
     let port = queryPort || localStorage.getItem(this.STORAGE_KEYS.PORT);
 
-    // 3. Auto-detect host if running from remote web server, otherwise use default IP
+    // 3. Fallbacks
     if (!ip) {
       ip = (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
         ? window.location.hostname
@@ -78,23 +81,29 @@ const AppConfig = {
 
     const cleanIp = ip.trim();
     const cleanPort = port.trim();
+    const baseURL = (queryIp || queryPort) ? `http://${cleanIp}:${cleanPort}` : (savedBaseURL || `http://${cleanIp}:${cleanPort}`);
 
     return {
       ip: cleanIp,
       port: cleanPort,
-      baseURL: `http://${cleanIp}:${cleanPort}`
+      baseURL: baseURL
     };
   },
 
   /**
-   * Saves updated connection parameters to localStorage.
+   * Saves updated connection parameters and generated baseURL to localStorage from user input.
    *
-   * @param {string} ip - The ProPresenter server IPv4 address or hostname.
-   * @param {string|number} port - The API port number (e.g. 1025).
+   * @param {string} ip - The ProPresenter server IPv4 address or hostname entered by user.
+   * @param {string|number} port - The API port number entered by user (e.g. 1025).
    */
   saveConfig(ip, port) {
-    if (ip) localStorage.setItem(this.STORAGE_KEYS.IP, ip.trim());
-    if (port) localStorage.setItem(this.STORAGE_KEYS.PORT, String(port).trim());
+    const cleanIp = ip ? String(ip).trim() : this.DEFAULT_IP;
+    const cleanPort = port ? String(port).trim() : this.DEFAULT_PORT;
+    const baseURL = `http://${cleanIp}:${cleanPort}`;
+
+    localStorage.setItem(this.STORAGE_KEYS.IP, cleanIp);
+    localStorage.setItem(this.STORAGE_KEYS.PORT, cleanPort);
+    localStorage.setItem(this.STORAGE_KEYS.BASE_URL, baseURL);
     localStorage.setItem(this.STORAGE_KEYS.CONNECTED, 'true');
     localStorage.setItem(this.STORAGE_KEYS.LAST_CONNECTED, new Date().toISOString());
   },
