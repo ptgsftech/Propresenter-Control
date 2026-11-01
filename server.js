@@ -324,7 +324,7 @@ app.post('/api/bible/live', async (req, res) => {
     }
 
     const isExplicitClear = (verseData.action === 'clear') ||
-                            (verseData.book === '' && verseData.chapter === 0 && verseData.verse === 0);
+      (verseData.book === '' && verseData.chapter === 0 && verseData.verse === 0);
 
     if (!isExplicitClear) {
       const rawBook = verseData.book || verseData.book_name || '';
@@ -471,7 +471,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('=================================================================\n');
 
   // Pre-load book aliases from Cloudflare D1 database into memory
-  bibleService.ensureAliasesLoaded().catch(() => {});
+  bibleService.ensureAliasesLoaded().catch(() => { });
 });
 
 // Graceful shutdown handling
