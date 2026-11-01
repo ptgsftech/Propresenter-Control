@@ -41,7 +41,7 @@ class BibleService {
   async queryD1(sql, params = []) {
     if (!this.queryUrl || !this.apiToken) {
       throw new Error(
-        'Cloudflare D1 is not configured. Please set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_DATABASE_ID, and CLOUDFLARE_API_KEY in system environment variables.'
+        'Cloudflare D1 is not configured. Please set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_DATABASE_ID, and CLOUDFLARE_API_TOKEN (or CLOUDFLARE_API_KEY) in system environment variables.'
       );
     }
 
