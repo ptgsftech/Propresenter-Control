@@ -99,63 +99,62 @@
   position: relative;
 }
 
-/* 1. Left Sidebar: 2-Tier Split (Library 75% / Playlist 25%) */
+/* 1. Left Sidebar: Collapsible Navigation Tree & Rail */
 .col-sidebar-left {
-  width: 320px;
-  flex: 0 0 320px;
+  width: 230px;
+  flex: 0 0 230px;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  transition: transform var(--transition-normal);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              flex-basis 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1020;
+  user-select: none;
 }
 
-.sidebar-section-tier {
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid var(--border-subtle);
-  overflow: hidden;
+/* Desktop Collapsed Rail State (width: 58px) */
+.col-sidebar-left.collapsed {
+  width: 58px;
+  flex: 0 0 58px;
 }
 
-.sidebar-tier-library {
-  flex: 0 0 75%;
-  height: 75%;
-  max-height: 75%;
-  min-height: 0;
+.col-sidebar-left.collapsed .sidebar-strip-title,
+.col-sidebar-left.collapsed .nav-badge-num,
+.col-sidebar-left.collapsed .nav-label,
+.col-sidebar-left.collapsed .btn-tree-toggle,
+.col-sidebar-left.collapsed .sidebar-sub-list,
+.col-sidebar-left.collapsed .sidebar-kbd,
+.col-sidebar-left.collapsed .sidebar-footer-text {
+  display: none !important;
 }
 
-.sidebar-tier-playlist {
-  flex: 0 0 25%;
-  height: 25%;
-  max-height: 25%;
-  min-height: 0;
-  border-bottom: none;
+.col-sidebar-left.collapsed .sidebar-brand-strip {
+  justify-content: center;
+  padding: 8px 4px;
 }
 
-.tier-header {
-  padding: 6px 10px;
-  background: rgba(0, 0, 0, 0.4);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
+.col-sidebar-left.collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding: 10px 4px;
 }
 
-.tier-title {
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
+.col-sidebar-left.collapsed .nav-item-main {
+  justify-content: center;
+  width: 100%;
 }
 
-.tier-scroll-list {
-  flex: 1 1 0;
-  overflow-y: auto;
-  padding: 4px;
+.col-sidebar-left.collapsed .nav-icon {
+  margin: 0;
+  font-size: 16px;
+}
+
+.col-sidebar-left.collapsed .sidebar-footer {
+  justify-content: center;
+  padding: 8px 4px;
 }
 
 /* 2. Center Workspace: Screens Monitor & Slide Cues */
@@ -284,8 +283,12 @@
 /* 1. Large Laptops & Desktops (1200px - 1400px) */
 @media (max-width: 1400px) {
   .col-sidebar-left {
-    width: 280px;
-    flex: 0 0 280px;
+    width: 220px;
+    flex: 0 0 220px;
+  }
+  .col-sidebar-left.collapsed {
+    width: 58px;
+    flex: 0 0 58px;
   }
   .col-sidebar-right {
     width: 340px;
@@ -295,8 +298,12 @@
 
 @media (max-width: 1200px) {
   .col-sidebar-left {
-    width: 250px;
-    flex: 0 0 250px;
+    width: 210px;
+    flex: 0 0 210px;
+  }
+  .col-sidebar-left.collapsed {
+    width: 58px;
+    flex: 0 0 58px;
   }
   .col-sidebar-right {
     width: 310px;
@@ -308,18 +315,48 @@
 @media (max-width: 992px) {
   .col-sidebar-left {
     position: fixed;
-    top: 52px;
+    top: 0;
     bottom: 0;
     left: 0;
-    width: 320px;
+    width: 280px;
     max-width: 85vw;
-    z-index: 1050;
+    z-index: 1060;
     box-shadow: 12px 0 32px rgba(0, 0, 0, 0.75);
     transform: translateX(-100%);
-    transition: transform var(--transition-normal);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .col-sidebar-left.open {
     transform: translateX(0);
+  }
+  /* In mobile/tablet drawer mode, ensure contents display cleanly */
+  .col-sidebar-left.collapsed {
+    width: 280px;
+    flex: 0 0 280px;
+  }
+  .col-sidebar-left.collapsed .sidebar-strip-title,
+  .col-sidebar-left.collapsed .nav-badge-num,
+  .col-sidebar-left.collapsed .nav-label,
+  .col-sidebar-left.collapsed .btn-tree-toggle,
+  .col-sidebar-left.collapsed .sidebar-kbd,
+  .col-sidebar-left.collapsed .sidebar-footer-text {
+    display: inline-flex !important;
+  }
+  .col-sidebar-left.collapsed .nav-label {
+    display: inline !important;
+  }
+  .col-sidebar-left.collapsed .sidebar-sub-list:not(.collapsed) {
+    display: flex !important;
+  }
+  .col-sidebar-left.collapsed .sidebar-brand-strip {
+    justify-content: space-between;
+    padding: 10px 14px;
+  }
+  .col-sidebar-left.collapsed .sidebar-nav-item {
+    justify-content: space-between;
+    padding: 10px 12px;
+  }
+  .col-sidebar-left.collapsed .nav-item-main {
+    justify-content: flex-start;
   }
 
   .col-sidebar-right {

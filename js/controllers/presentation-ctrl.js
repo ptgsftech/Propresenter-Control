@@ -69,6 +69,18 @@ class PresentationController {
      */
     this.slideIndexPollInterval = null;
 
+    /**
+     * Periodic 2-second polling timer ID for slide thumbnails.
+     * @type {number|null}
+     */
+    this.thumbnailPollInterval = null;
+
+    /**
+     * Guard to prevent concurrent thumbnail poll batches.
+     * @type {boolean}
+     */
+    this.isThumbnailPolling = false;
+
     window.presentationCtrl = this;
 
     this.init();
@@ -84,6 +96,7 @@ class PresentationController {
     this.bindControls();
     this.bindKeyboardShortcuts();
     this.startSlideIndexPolling();
+    this.startThumbnailPolling();
   }
 
   /**
@@ -292,15 +305,28 @@ class PresentationController {
    * Asynchronously loads a slide thumbnail image.
    *
    * @param {number} index - 0-indexed slide position.
+   * @param {boolean} [forceRefresh=false] - Whether to bypass browser cache with a timestamp query.
    * @private
    */
-  loadThumbnail(index) {
+  loadThumbnail(index, forceRefresh = false) {
     if (!this.activePresentationId) return;
-    const url = this.api.getSlideThumbnailUrl(this.activePresentationId, index, 360);
+    const baseUrl = this.api.getSlideThumbnailUrl(this.activePresentationId, index, 360);
+    const url = forceRefresh ? `${baseUrl}&_t=${Date.now()}` : baseUrl;
     const img = document.getElementById(`thumb-img-${index}`);
     const placeholder = document.querySelector(`#thumb-box-${index} .slide-thumb-placeholder`);
 
     if (!img) return;
+
+    if (forceRefresh) {
+      const preloader = new Image();
+      preloader.onload = () => {
+        img.src = url;
+        img.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+      };
+      preloader.src = url;
+      return;
+    }
 
     img.onload = () => {
       img.style.display = 'block';
@@ -316,7 +342,10 @@ class PresentationController {
 
   /**
    * Starts high-frequency 1-second polling of GET /v1/presentation/slide_index.
-   * Immediately synchronizes when an operator clicks a slide directly in the ProPresenter desktop software.
+
+  /**
+   * Starts periodic polling of GET /v1/presentation/slide_index.
+   * Only executes if StreamClient is not active or as background sync.
    */
   startSlideIndexPolling() {
     if (this.slideIndexPollInterval) {
@@ -325,7 +354,7 @@ class PresentationController {
 
     this.slideIndexPollInterval = setInterval(() => {
       this.pollSlideIndex();
-    }, 1000);
+    }, 1500);
   }
 
   /**
@@ -335,6 +364,72 @@ class PresentationController {
     if (this.slideIndexPollInterval) {
       clearInterval(this.slideIndexPollInterval);
       this.slideIndexPollInterval = null;
+    }
+  }
+
+  /**
+   * Starts periodic check for presentation structure updates.
+   * Runs at a sensible interval (8s) only while Presentation view is open, preventing network choke.
+   */
+  startThumbnailPolling() {
+    if (this.thumbnailPollInterval) {
+      clearInterval(this.thumbnailPollInterval);
+    }
+
+    this.thumbnailPollInterval = setInterval(() => {
+      this.pollThumbnails();
+    }, 8000);
+  }
+
+  /**
+   * Stops the slide thumbnail polling interval.
+   */
+  stopThumbnailPolling() {
+    if (this.thumbnailPollInterval) {
+      clearInterval(this.thumbnailPollInterval);
+      this.thumbnailPollInterval = null;
+    }
+  }
+
+  /**
+   * Checks presentation structure updates from ProPresenter software.
+   * Only triggers thumbnail image reload if slide count or presentation has changed.
+   */
+  async pollThumbnails() {
+    // Only poll when presentation cues view is actually active and visible
+    const cuesWrapper = document.getElementById('cuesSectionWrapper');
+    if (!cuesWrapper || cuesWrapper.classList.contains('d-none') || cuesWrapper.style.display === 'none') {
+      return;
+    }
+    if (!this.activePresentationId || !this.slides || this.slides.length === 0) return;
+    if (this.isThumbnailPolling) return;
+
+    this.isThumbnailPolling = true;
+    const currentPresId = this.activePresentationId;
+
+    try {
+      // Check presentation details in case slides were added or removed in ProPresenter
+      const presData = await this.api.getPresentation(currentPresId).catch(() => null);
+      if (this.activePresentationId !== currentPresId) return;
+
+      const fullPres = (presData && presData.presentation) ? presData.presentation : (presData || null);
+      if (fullPres && fullPres.groups && Array.isArray(fullPres.groups)) {
+        let totalCues = 0;
+        fullPres.groups.forEach(g => {
+          if (g.slides && Array.isArray(g.slides)) totalCues += g.slides.length;
+        });
+
+        // If slide count changed in ProPresenter, rebuild cues cards
+        if (totalCues !== this.slides.length) {
+          console.log(`[PresentationCtrl] Slide count updated in software (${this.slides.length} -> ${totalCues}). Rebuilding cues.`);
+          this.handleActivePresentation(fullPres);
+          return;
+        }
+      }
+    } catch (err) {
+      console.debug('[PresentationCtrl] Presentation sync check:', err.message);
+    } finally {
+      this.isThumbnailPolling = false;
     }
   }
 
@@ -411,6 +506,12 @@ class PresentationController {
    * unless software or remote actively triggers a new slide live on screen.
    */
   async pollSlideIndex() {
+    // Only poll when presentation cues view is actually active and visible
+    const cuesWrapper = document.getElementById('cuesSectionWrapper');
+    if (!cuesWrapper || cuesWrapper.classList.contains('d-none') || cuesWrapper.style.display === 'none') {
+      return;
+    }
+
     try {
       const data = await this.api.getSlideIndex();
       if (!data) return;
@@ -422,6 +523,9 @@ class PresentationController {
       const presName = presId ? (presId.name || '') : '';
 
       if (idx === null || idx === undefined) return;
+
+      // Do not load Bible RSS presentation into the song deck
+      if (presName && presName.toLowerCase() === 'bible') return;
 
       // Track whether this is actually a new live slide trigger event from software/remote
       const isNewLiveEvent = (this.lastLivePresUuid !== presUuid) || (this.lastLiveSlideIdx !== idx);

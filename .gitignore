@@ -1,23 +1,23 @@
 # Dependencies
 node_modules/
-package-lock.json.bak
-
-# Local Environment & Secrets
-.env
-*.local
 
 # Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 *.log
+npm-debug.log*
 
-# OS & Editor Artifacts
+# OS Artifacts
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
 
-# Legacy Archives
-/app-tamil-fonts-unicode-converter-master.zip
-/app-tamil-fonts-unicode-converter-master
+# Temporary & Scratch Files
+scratch/
+legacy/
+.system_generated/
+
+# Local private configuration containing real tokens/secrets (never pushed to GitHub)
+config.local.json
+
+# Legacy environment files (blocked by GitHub rules)
+.env
+.env.*
+!.env.example

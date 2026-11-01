@@ -11,21 +11,25 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 const os = require('os');
-require('dotenv').config();
+
+// Load centralized configuration from config.properties / config.json / environment
+const config = require('./src/config');
 
 const bibleService = require('./src/services/bible-service');
 
 const app = express();
+app.set('etag', false);
 
 // ==============================================================================
 // 1. CONFIGURATION
 // ==============================================================================
-const PORT = parseInt(process.env.PORT, 10) || 8080;
-const PROPRESENTER_HOST = process.env.PROPRESENTER_HOST || '192.168.0.200';
-const PROPRESENTER_PORT = process.env.PROPRESENTER_PORT || '1025';
-const PROPRESENTER_BASE_URL = `http://${PROPRESENTER_HOST}:${PROPRESENTER_PORT}`;
+const PORT = config.PORT;
+const PROPRESENTER_HOST = config.PROPRESENTER_HOST;
+const PROPRESENTER_PORT = config.PROPRESENTER_PORT;
+const PROPRESENTER_BASE_URL = config.PROPRESENTER_BASE_URL;
 
 // ==============================================================================
 // 2. MIDDLEWARE
@@ -220,7 +224,7 @@ const handleBibleRssRequest = async (req, res) => {
     } else {
       // 2. Dynamic Live mode: stream currently active live verse translated for this version
       const liveData = await bibleService.getActiveLiveVerseForVersion(version);
-      if (liveData) {
+      if (liveData && liveData.verse > 0 && liveData.verse_text) {
         item = {
           version: version,
           book_name: liveData.book_name,
@@ -232,17 +236,24 @@ const handleBibleRssRequest = async (req, res) => {
       }
     }
 
-    res.set('Content-Type', 'application/rss+xml; charset=utf-8');
+    res.set({
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, post-check=0, pre-check=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store'
+    });
+    res.removeHeader('ETag');
 
-    if (!item) {
-      const emptyXml = bibleService.createEmptyFeed(version, book || 'GEN', chapter || 1, verse || 1, feedType, baseUrl);
-      return res.send(emptyXml);
+    if (!item || !item.verse_text) {
+      const clearedXml = bibleService.createClearedFeed(version, baseUrl, feedType);
+      return res.send(clearedXml);
     }
 
-    // Parse Feed Configuration Settings from query parameters
+    // Parse Feed Configuration Settings from query parameters (default ttl to 0 for instant push)
     const feedOptions = {
-      ttl: req.query.speed ? parseInt(req.query.speed, 10) : (req.query.ttl ? parseInt(req.query.ttl, 10) : 1),
-      speed: req.query.speed ? parseInt(req.query.speed, 10) : 1,
+      ttl: req.query.speed ? parseInt(req.query.speed, 10) : (req.query.ttl ? parseInt(req.query.ttl, 10) : 0),
+      speed: req.query.speed ? parseInt(req.query.speed, 10) : 0,
       toggles: req.query.toggles !== '0' && req.query.toggles !== 'false',
       slides: req.query.slides ? parseInt(req.query.slides, 10) : (req.query.splitSlides ? parseInt(req.query.splitSlides, 10) : 1),
       limit: req.query.limit ? parseInt(req.query.limit, 10) : (req.query.maxChars ? parseInt(req.query.maxChars, 10) : 0)
@@ -261,6 +272,7 @@ const handleBibleRssRequest = async (req, res) => {
       xml = bibleService.createFullVerseRSS(item, version, book, chapter, verse, baseUrl, feedOptions);
     }
 
+    console.log(`[${new Date().toLocaleTimeString()}] [RSS Stream] ${version} (${feedType}) -> ${item.book_name} ${chapter}:${verse}`);
     return res.send(xml);
   } catch (err) {
     console.error('[Bible RSS] Error:', err);
@@ -307,10 +319,54 @@ app.get('/api/bible/rss-info', async (req, res) => {
 /**
  * Updates the active live presented verse.
  */
-app.post('/api/bible/live', (req, res) => {
+app.post('/api/bible/live', async (req, res) => {
   try {
     const verseData = req.body;
+
+    // Strict validation: RSS must strictly capture the Bible section, NEVER songs content
+    if (!verseData || typeof verseData !== 'object') {
+      return res.status(400).json({ success: false, error: 'Invalid payload: Bible section verse required' });
+    }
+
+    const isExplicitClear = (verseData.action === 'clear') ||
+                            (verseData.book === '' && verseData.chapter === 0 && verseData.verse === 0);
+
+    if (!isExplicitClear) {
+      const rawBook = verseData.book || verseData.book_name || '';
+      const resolvedBook = bibleService.resolveBookGlobalId(rawBook) || await bibleService.resolveBook(rawBook);
+
+      const hasBibleBook = Boolean(resolvedBook);
+      const hasVerseText = Boolean(verseData.verse_text && typeof verseData.verse_text === 'string' && verseData.verse_text.trim().length > 0);
+      const chapterNum = parseInt(verseData.chapter, 10);
+      const verseNum = parseInt(verseData.verse, 10);
+      const hasValidNumbers = !isNaN(chapterNum) && chapterNum > 0 && !isNaN(verseNum) && verseNum > 0;
+
+      if (!hasBibleBook || !hasVerseText || !hasValidNumbers) {
+        return res.status(400).json({
+          success: false,
+          error: 'Rejected non-bible content: RSS feeds strictly capture Bible section scripture, not songs content.'
+        });
+      }
+
+      verseData.book = resolvedBook;
+    }
+
     const active = bibleService.setActiveLiveVerse(verseData);
+
+    // Concurrently write to local text files in ProPresenter directory for 0ms instant file-link mode
+    try {
+      const liveDir = 'C:\\ProPresenter Files';
+      if (fs.existsSync(liveDir)) {
+        const refText = isExplicitClear
+          ? ''
+          : (verseData.reference || (verseData.book_name ? `${verseData.book_name} ${verseData.chapter}:${verseData.verse}` : ''));
+        fs.writeFileSync(path.join(liveDir, 'Bible_Verse.txt'), isExplicitClear ? '' : (verseData.verse_text || ''), 'utf8');
+        fs.writeFileSync(path.join(liveDir, 'Bible_Reference.txt'), refText, 'utf8');
+      }
+    } catch (fErr) {
+      // non-fatal
+    }
+
     res.json({ success: true, active_verse: active });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -403,6 +459,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('\n=================================================================');
   console.log('  PROPRESENTER WEB STUDIO CONTROLLER - NODE.JS SERVER READY');
   console.log('=================================================================');
+  console.log(`  * Config Source:      ${config.loadedFrom}`);
   console.log(`  * Local Access:       http://localhost:${PORT}/pages/index.html?bypass=true`);
   console.log(`  * Standard Login:     http://localhost:${PORT}/`);
   console.log(`  * Stage Monitor:      http://localhost:${PORT}/stage`);
@@ -416,6 +473,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('\n  Target ProPresenter Host:');
   console.log(`  * OpenAPI URL:        ${PROPRESENTER_BASE_URL}`);
   console.log('=================================================================\n');
+
+  // Pre-load book aliases from Cloudflare D1 database into memory
+  bibleService.ensureAliasesLoaded().catch(() => {});
 });
 
 // Graceful shutdown handling

@@ -8,82 +8,12 @@
  * @license MIT
  */
 
-const BOOK_ALIASES = {
-  // Old Testament
-  'GEN': ['GEN', 'GENESIS', 'ஆதியாகமம்', 'ஆதி'],
-  'EXO': ['EXO', 'EXODUS', 'யாத்திராகமம்', 'யாத்'],
-  'LEV': ['LEV', 'LEVITICUS', 'லேவியராகமம்', 'லேவி'],
-  'NUM': ['NUM', 'NUMBERS', 'எண்ணாகமம்', 'எண்'],
-  'DEU': ['DEU', 'DEUTERONOMY', 'உபாகமம்', 'உபா'],
-  'JOS': ['JOS', 'JOSHUA', 'யோசுவா', 'யோசு'],
-  'JDG': ['JDG', 'JUDGES', 'நியாயாதிபதிகள்', 'நியா'],
-  'RUT': ['RUT', 'RUTH', 'ரூத்'],
-  '1SA': ['1SA', '1 SAMUEL', '1SAMUEL', '1 சாமுவேல்', '1சாமு'],
-  '2SA': ['2SA', '2 SAMUEL', '2SAMUEL', '2 சாமுவேல்', '2சாமு'],
-  '1KI': ['1KI', '1 KINGS', '1KINGS', '1 இராஜாக்கள்', '1இரா'],
-  '2KI': ['2KI', '2 KINGS', '2KINGS', '2 இராஜாக்கள்', '2இரா'],
-  '1CH': ['1CH', '1 CHRONICLES', '1CHRONICLES', '1 நாளாகமம்', '1நாளா'],
-  '2CH': ['2CH', '2 CHRONICLES', '2CHRONICLES', '2 நாளாகமம்', '2நாளா'],
-  'EZR': ['EZR', 'EZRA', 'எஸ்றா'],
-  'NEH': ['NEH', 'NEHEMIAH', 'நெகேமியா'],
-  'EST': ['EST', 'ESTHER', 'எஸ்தர்'],
-  'JOB': ['JOB', 'யோபு'],
-  'PSA': ['PSA', 'PSALM', 'PSALMS', 'சங்கீதம்', 'சங்'],
-  'PRO': ['PRO', 'PROVERBS', 'நீதிமொழிகள்', 'நீதி'],
-  'ECC': ['ECC', 'ECCLESIASTES', 'பிரசங்கி'],
-  'SNG': ['SNG', 'SONG OF SOLOMON', 'CANTICLES', 'உன்னதப்பாட்டு', 'உன்ன'],
-  'ISA': ['ISA', 'ISAIAH', 'ஏசாயா'],
-  'JER': ['JER', 'JEREMIAH', 'எரேமியா'],
-  'LAM': ['LAM', 'LAMENTATIONS', 'புலம்பல்'],
-  'EZK': ['EZK', 'EZEKIEL', 'எசேக்கியேல்'],
-  'DAN': ['DAN', 'DANIEL', 'தானியேல்'],
-  'HOS': ['HOS', 'HOSEA', 'ஓசியா'],
-  'JOL': ['JOL', 'JOEL', 'யோவேல்'],
-  'AMO': ['AMO', 'AMOS', 'ஆமோஸ்'],
-  'OBA': ['OBA', 'OBADIAH', 'ஒபதியா'],
-  'JON': ['JON', 'JONAH', 'யோனா'],
-  'MIC': ['MIC', 'MICAH', 'மீகா'],
-  'NAM': ['NAM', 'NAHUM', 'நாகூம்'],
-  'HAB': ['HAB', 'HABAKKUK', 'ஆபகூக்'],
-  'ZEP': ['ZEP', 'ZEPHANIAH', 'செப்பனியா'],
-  'HAG': ['HAG', 'HAGGAI', 'ஆகாய்'],
-  'ZEC': ['ZEC', 'ZECHARIAH', 'சகரியா'],
-  'MAL': ['MAL', 'MALACHI', 'மல்கியா'],
-
-  // New Testament
-  'MAT': ['MAT', 'MATTHEW', 'மத்தேயு', 'மத்'],
-  'MRK': ['MRK', 'MARK', 'மாற்கு', 'மாற்'],
-  'LUK': ['LUK', 'LUKE', 'லூக்கா', 'லூக்'],
-  'JHN': ['JHN', 'JOHN', 'யோவான்', 'யோவா'],
-  'ACT': ['ACT', 'ACTS', 'அப்போஸ்தலர்', 'அப்'],
-  'ROM': ['ROM', 'ROMANS', 'ரோமர்', 'ரோம'],
-  '1CO': ['1CO', '1 CORINTHIANS', '1CORINTHIANS', '1 கொரிந்தியர்', '1கொரி'],
-  '2CO': ['2CO', '2 CORINTHIANS', '2CORINTHIANS', '2 கொரிந்தியர்', '2கொரி'],
-  'GAL': ['GAL', 'GALATIANS', 'கலாத்தியர்', 'கலா'],
-  'EPH': ['EPH', 'EPHESIANS', 'எபேசியர்', 'எபே'],
-  'PHP': ['PHP', 'PHILIPPIANS', 'பிலிப்பியர்', 'பிலி'],
-  'COL': ['COL', 'COLOSSIANS', 'கொலோசெயர்', 'கொலோ'],
-  '1TH': ['1TH', '1 THESSALONIANS', '1THESSALONIANS', '1 தெசலோனிக்கேயர்', '1தெச'],
-  '2TH': ['2TH', '2 THESSALONIANS', '2THESSALONIANS', '2 தெசலோனிக்கேயர்', '2தெச'],
-  '1TI': ['1TI', '1 TIMOTHY', '1TIMOTHY', '1 தீமோத்தேயு', '1தீமோ'],
-  '2TI': ['2TI', '2 TIMOTHY', '2TIMOTHY', '2 தீமோத்தேயு', '2தீமோ'],
-  'TIT': ['TIT', 'TITUS', 'தீத்து'],
-  'PHM': ['PHM', 'PHILEMON', 'பிலேமோன்'],
-  'HEB': ['HEB', 'HEBREWS', 'எபிரெயர்', 'எபி'],
-  'JAS': ['JAS', 'JAMES', 'யாக்கோபு', 'யாக்'],
-  '1PE': ['1PE', '1 PETER', '1PETER', '1 பேதுரு', '1பேது'],
-  '2PE': ['2PE', '2 PETER', '2PETER', '2 பேதுரு', '2பேது'],
-  '1JN': ['1JN', '1 JOHN', '1JOHN', '1 யோவான்', '1யோவா'],
-  '2JN': ['2JN', '2 JOHN', '2JOHN', '2 யோவான்', '2யோவா'],
-  '3JN': ['3JN', '3 JOHN', '3JOHN', '3 யோவான்', '3யோவா'],
-  'JUD': ['JUD', 'JUDE', 'யூதா'],
-  'REV': ['REV', 'REVELATION', 'வெளிப்படுத்தின விசேஷம்', 'வெளிப்படுத்தல்', 'வெளி']
-};
+const config = require('../config');
 
 class BibleService {
   constructor() {
-    this.queryUrl = process.env.CLOUDFLARE_QUERY_URL || '';
-    this.apiToken = process.env.CLOUDFLARE_API_TOKEN || '';
+    this.queryUrl = config.CLOUDFLARE_QUERY_URL || process.env.CLOUDFLARE_QUERY_URL || '';
+    this.apiToken = config.CLOUDFLARE_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || '';
     this.versionsCache = null;
     this.booksCache = new Map();
     this.activeLiveVerse = {
@@ -106,7 +36,7 @@ class BibleService {
    */
   async queryD1(sql, params = []) {
     if (!this.queryUrl || !this.apiToken) {
-      throw new Error('Cloudflare D1 is not configured. Check CLOUDFLARE_QUERY_URL and CLOUDFLARE_API_TOKEN in .env');
+      throw new Error('Cloudflare D1 is not configured. Check CLOUDFLARE_QUERY_URL and CLOUDFLARE_API_TOKEN in config.properties or config.json');
     }
 
     const payload = {
@@ -235,11 +165,19 @@ class BibleService {
         addEntry(r.book_name, r.book_global_id);
         addEntry(r.book_short_name, r.book_global_id);
       });
+
+      // 3. Register canonical book_global_id directly from book_details (e.g. GEN, EXO, MAT)
+      const detailRows = await this.queryD1(`
+        SELECT book_global_id FROM book_details;
+      `);
+      detailRows.forEach(r => addEntry(r.book_global_id, r.book_global_id));
+
+      console.log(`[BibleService] Successfully loaded ${this.aliasMap.size} book aliases from Cloudflare D1 database.`);
     } catch (err) {
-      console.warn('[BibleService] Warning loading D1 aliases, falling back to static aliases:', err.message);
+      console.warn('[BibleService] Warning loading D1 aliases from database:', err.message);
     }
 
-    // 3. Fallback extra aliases for common typos and abbreviations
+    // 4. Fallback extra aliases for common typos and abbreviations
     const typoExtras = {
       'gensis': 'GEN',
       'genisis': 'GEN',
@@ -270,14 +208,6 @@ class BibleService {
     };
     Object.entries(typoExtras).forEach(([k, v]) => addEntry(k, v));
 
-    // 4. Merge static BOOK_ALIASES dictionary
-    for (const [gid, list] of Object.entries(BOOK_ALIASES)) {
-      addEntry(gid, gid);
-      for (const item of list) {
-        addEntry(item, gid);
-      }
-    }
-
     return this.aliasMap;
   }
 
@@ -304,21 +234,22 @@ class BibleService {
   }
 
   /**
-   * Synchronous fallback resolver using static aliases if needed.
+   * Synchronous resolver using in-memory alias map loaded from database.
    * @param {string} raw
    * @returns {string|null}
    */
   resolveBookGlobalId(raw) {
-    if (!raw) return null;
-    const clean = String(raw).trim().toUpperCase().replace(/\s+/g, '');
+    if (!raw || !this.aliasMap) return null;
+    const clean = String(raw).trim().toLowerCase().replace(/\s+/g, '');
+    let resolved = this.aliasMap.get(clean);
 
-    for (const [globalId, aliases] of Object.entries(BOOK_ALIASES)) {
-      if (globalId === clean) return globalId;
-      for (const alias of aliases) {
-        if (alias.toUpperCase().replace(/\s+/g, '') === clean) return globalId;
+    if (!resolved) {
+      const numMatch = clean.match(/^([1-3])(.*)/);
+      if (numMatch) {
+        resolved = this.aliasMap.get(`${numMatch[1]} ${numMatch[2]}`) || this.aliasMap.get(numMatch[2]);
       }
     }
-    return null;
+    return resolved || null;
   }
 
   /**
@@ -548,6 +479,18 @@ class BibleService {
       };
     }
 
+    // 0. If live scripture was explicitly cleared, return blank (do not query D1 for verse 0)
+    if (live.verse === 0 || (!live.verse_text && !live.book)) {
+      return {
+        version: ver,
+        book: '',
+        book_name: '',
+        chapter: 0,
+        verse: 0,
+        verse_text: ''
+      };
+    }
+
     // 1. Check if all_versions has this version text
     if (live.all_versions && live.all_versions[ver] && live.all_versions[ver].text) {
       return {
@@ -668,18 +611,20 @@ class BibleService {
     const feedUrl = `${baseUrl}/api/bible/rss/${encodeURIComponent(version)}`;
     const verseUrl = `${baseUrl}/api/bible/verses?versions=${encodeURIComponent(version)}&book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}&verse=${encodeURIComponent(verse)}`;
     const formattedText = this.formatScriptureText(item.verse_text, options);
-    const ttl = parseInt(options.ttl || options.speed, 10) || 1;
+    const ttl = parseInt(options.ttl ?? options.speed, 10) || 0;
     const slides = this.splitIntoSlides(formattedText, parseInt(options.slides, 10) || 1);
+    const nowUtc = new Date().toUTCString();
 
     const itemsXml = slides.map((slideText, idx) => {
       const slideTitle = slides.length > 1 ? `${reference} (${idx + 1}/${slides.length})` : reference;
-      const guid = `verse-full-${version}-${book}-${chapter}-${verse}-s${idx + 1}`;
+      const guid = `verse-full-${version}-${book}-${chapter}-${verse}-s${idx + 1}-${Date.now()}`;
       return `    <item>
       <title>${this.xmlEscape(slideTitle)}</title>
       <description>${this.xmlEscape(slideText)}</description>
       <content:encoded>${this.xmlEscape(slideText)}</content:encoded>
       <link>${this.xmlEscape(verseUrl)}</link>
       <guid isPermaLink="false">${this.xmlEscape(guid)}</guid>
+      <pubDate>${nowUtc}</pubDate>
       <category>Bible</category>
       <category>FullVerse</category>
       <category>${this.xmlEscape(version)}</category>
@@ -693,6 +638,7 @@ class BibleService {
     <description>${this.xmlEscape(reference + ' - ' + item.version)}</description>
     <link>${this.xmlEscape(feedUrl)}</link>
     <language>${this.xmlEscape(this.getLanguageCode(version))}</language>
+    <lastBuildDate>${nowUtc}</lastBuildDate>
     <generator>ProPresenter Node.js Bible RSS Generator</generator>
     <ttl>${ttl}</ttl>
 ${itemsXml}
@@ -709,17 +655,19 @@ ${itemsXml}
     const feedUrl = `${baseUrl}/api/bible/rss/${encodeURIComponent(version)}?type=verse`;
     const verseUrl = `${baseUrl}/api/bible/verses?versions=${encodeURIComponent(version)}&book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}&verse=${encodeURIComponent(verse)}`;
     const formattedText = this.formatScriptureText(item.verse_text, options);
-    const ttl = parseInt(options.ttl || options.speed, 10) || 1;
+    const ttl = parseInt(options.ttl ?? options.speed, 10) || 0;
     const slides = this.splitIntoSlides(formattedText, parseInt(options.slides, 10) || 1);
+    const nowUtc = new Date().toUTCString();
 
     const itemsXml = slides.map((slideText, idx) => {
-      const guid = `verse-text-${version}-${book}-${chapter}-${verse}-s${idx + 1}`;
+      const guid = `verse-text-${version}-${book}-${chapter}-${verse}-s${idx + 1}-${Date.now()}`;
       return `    <item>
       <title>${this.xmlEscape(slideText)}</title>
       <description>${this.xmlEscape(slideText)}</description>
       <content:encoded>${this.xmlEscape(slideText)}</content:encoded>
       <link>${this.xmlEscape(verseUrl)}</link>
       <guid isPermaLink="false">${this.xmlEscape(guid)}</guid>
+      <pubDate>${nowUtc}</pubDate>
       <category>Bible</category>
       <category>VerseText</category>
       <category>${this.xmlEscape(version)}</category>
@@ -733,6 +681,7 @@ ${itemsXml}
     <description>${this.xmlEscape(reference + ' - ' + item.version)}</description>
     <link>${this.xmlEscape(feedUrl)}</link>
     <language>${this.xmlEscape(this.getLanguageCode(version))}</language>
+    <lastBuildDate>${nowUtc}</lastBuildDate>
     <generator>ProPresenter Node.js Bible RSS Generator</generator>
     <ttl>${ttl}</ttl>
 ${itemsXml}
@@ -747,7 +696,8 @@ ${itemsXml}
   createReferenceOnlyRSS(item, version, book, chapter, verse, baseUrl = '', options = {}) {
     const reference = `${item.book_name} ${chapter}:${verse}`;
     const feedUrl = `${baseUrl}/api/bible/rss/${encodeURIComponent(version)}?type=reference`;
-    const ttl = parseInt(options.ttl || options.speed, 10) || 1;
+    const ttl = parseInt(options.ttl ?? options.speed, 10) || 0;
+    const nowUtc = new Date().toUTCString();
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
@@ -756,12 +706,14 @@ ${itemsXml}
     <description>${this.xmlEscape('Bible Reference: ' + reference + ' - ' + item.version)}</description>
     <link>${this.xmlEscape(feedUrl)}</link>
     <language>${this.xmlEscape(this.getLanguageCode(version))}</language>
+    <lastBuildDate>${nowUtc}</lastBuildDate>
     <generator>ProPresenter Node.js Bible RSS Generator</generator>
     <ttl>${ttl}</ttl>
     <item>
       <title>${this.xmlEscape(reference)}</title>
       <description>${this.xmlEscape(reference)}</description>
-      <guid isPermaLink="false">${this.xmlEscape('reference-' + version + '-' + book + '-' + chapter + '-' + verse)}</guid>
+      <guid isPermaLink="false">${this.xmlEscape('reference-' + version + '-' + book + '-' + chapter + '-' + verse + '-' + Date.now())}</guid>
+      <pubDate>${nowUtc}</pubDate>
       <category>Bible</category>
       <category>Reference</category>
       <category>${this.xmlEscape(version)}</category>
@@ -777,6 +729,35 @@ ${itemsXml}
 
   createReferenceRSS(item, version, book, chapter, verse, baseUrl = '') {
     return this.createReferenceOnlyRSS(item, version, book, chapter, verse, baseUrl);
+  }
+
+  /**
+   * Creates Cleared RSS XML feed when scripture is cleared or empty.
+   * Produces an empty title and empty description so ProPresenter wipes screen cleanly.
+   */
+  createClearedFeed(version = 'TAM', baseUrl = '', feedType = 'full') {
+    const feedUrl = `${baseUrl}/api/bible/rss/${encodeURIComponent(version)}${feedType !== 'full' ? `?type=${encodeURIComponent(feedType)}` : ''}`;
+    const nowUtc = new Date().toUTCString();
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>${this.xmlEscape(version + ' - Bible Verse')}</title>
+    <description>Bible Screen Cleared</description>
+    <link>${this.xmlEscape(feedUrl)}</link>
+    <language>${this.xmlEscape(this.getLanguageCode(version))}</language>
+    <lastBuildDate>${nowUtc}</lastBuildDate>
+    <ttl>0</ttl>
+    <item>
+      <title></title>
+      <description></description>
+      <guid isPermaLink="false">cleared-${Date.now()}</guid>
+      <pubDate>${nowUtc}</pubDate>
+      <category>Bible</category>
+      <category>Cleared</category>
+    </item>
+  </channel>
+</rss>`;
   }
 
   /**

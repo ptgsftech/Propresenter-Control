@@ -1007,8 +1007,10 @@ class ProSongSearchController {
       this.resetFilters();
     });
 
-    // 8. Open Search Modal Buttons in Header and Sidebar
+    // 8. Open Search Modal Buttons in Header, Left Sidebar, and Mobile Nav
     document.getElementById('headerSongSearchBtn')?.addEventListener('click', () => this.openModal());
+    document.getElementById('sidebarSearchBtn')?.addEventListener('click', () => this.openModal());
+    document.getElementById('mobileNavSearchBtn')?.addEventListener('click', () => this.openModal());
     document.getElementById('sidebarMasterSearchBtn')?.addEventListener('click', () => this.openModal());
   }
 
