@@ -17,7 +17,7 @@ class BibleService {
     this.queryUrl = (accountId && databaseId)
       ? `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`
       : '';
-    this.apiToken = (process.env.CLOUDFLARE_API_TOKEN || '').trim();
+    this.apiToken = (process.env.CLOUDFLARE_API_KEY || '').trim();
     this.versionsCache = null;
     this.booksCache = new Map();
     this.activeLiveVerse = {
@@ -41,7 +41,7 @@ class BibleService {
   async queryD1(sql, params = []) {
     if (!this.queryUrl || !this.apiToken) {
       throw new Error(
-        'Cloudflare D1 is not configured. Please set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_DATABASE_ID, and CLOUDFLARE_API_TOKEN in system environment variables.'
+        'Cloudflare D1 is not configured. Please set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_DATABASE_ID, and CLOUDFLARE_API_KEY in system environment variables.'
       );
     }
 

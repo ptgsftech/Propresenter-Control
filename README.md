@@ -150,12 +150,12 @@ This project requires **zero configuration files** (`.env` and `config.json` are
 2. **ProPresenter Host & Port**: No backend configuration needed. When an operator opens the login screen (`pages/login.html`), they enter the ProPresenter machine IP and Port (default `192.168.0.200:1025`). The app generates the base URL (`http://<IP>:<PORT>`) and persists it in browser `localStorage` (`proPresenterBaseURL`) for direct API communication.
 3. **Cloudflare D1 Bible Database (System Environment Variables)**:
    Credentials for the Bible Scripture Live Engine are read directly from your operating system environment variables (`process.env`). You can set them using the included batch file or via PowerShell:
-   - **Method A (Batch Script)**: Run **`setup-env.bat`** in CMD (sets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_DATABASE_ID`, and `CLOUDFLARE_API_TOKEN`).
+   - **Method A (Batch Script)**: Run **`setup-env.bat`** in CMD (sets `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_DATABASE_ID`, and `CLOUDFLARE_API_KEY`).
    - **Method B (CMD / PowerShell Command)**:
      ```cmd
      setx CLOUDFLARE_ACCOUNT_ID "0b1c76e5e6b514a1bd0ef28aa0a348f5"
      setx CLOUDFLARE_DATABASE_ID "12c25273-ebbf-4206-b075-fbfbaca83de5"
-     setx CLOUDFLARE_API_TOKEN "your_actual_token_here"
+     setx CLOUDFLARE_API_KEY "your_actual_token_here"
      ```
    The backend dynamically frames the full Cloudflare D1 query URL using the Account ID and Database ID. No query URL variable or `.env` file needed!
 

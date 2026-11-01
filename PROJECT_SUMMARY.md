@@ -78,7 +78,7 @@ Credentials for querying the Cloudflare D1 Bible database are read directly from
 | :--- | :--- |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account identifier |
 | `CLOUDFLARE_DATABASE_ID` | Cloudflare D1 database UUID |
-| `CLOUDFLARE_API_TOKEN` | Bearer token with D1 permissions |
+| `CLOUDFLARE_API_KEY` | Bearer token with D1 permissions |
 The Cloudflare D1 query URL is automatically framed dynamically in `src/services/bible-service.js`:
 `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`
 
