@@ -63,35 +63,26 @@ The **ProPresenter Web Studio Controller** is a broadcast-grade remote command c
 
 ---
 
-## 3. Configuration Management (`config.json`)
+## 3. Zero-Config Architecture & System Environment Variables
 
-To resolve GitHub push protection and secret scanning rejections caused by committing `.env` files or raw Cloudflare API tokens, configuration is managed through standard JSON configuration files loaded by `src/config.js`.
+To completely eliminate configuration file management and avoid GitHub push protection or secret scanning blocks, the project operates on a **zero-config model**:
 
-### 3.1 Loading Priority Hierarchy:
-1. `config.local.json` (Local machine overrides containing private church credentials, ignored by git)
-2. `config.json` (Main project configuration tracked by git, contains safe placeholders)
-3. `process.env` (Operating system environment variables)
-4. Built-in defaults
+### 3.1 Static Port & UI-Driven ProPresenter Connection:
+1. **Server Port**: Statically set to `8080`.
+2. **ProPresenter Host & Port**: No backend configuration file needed. The operator enters the ProPresenter IP and Port in the login screen (`pages/login.html`). The application generates the base URL (`http://<IP>:<PORT>`) and persists it directly into browser `localStorage` under `proPresenterBaseURL` (as well as `proPresenterIP` and `proPresenterPort`).
 
-### 3.2 Configuration Parameters:
+### 3.2 Cloudflare D1 Bible Engine (System Environment Variables):
+Credentials for querying the Cloudflare D1 Bible database are read directly from operating system environment variables (`process.env`) in `src/services/bible-service.js`:
 
-| Key | Default | Description |
-| :--- | :--- | :--- |
-| `PORT` | `8080` | Local Express web server and RSS feed port |
-| `PROPRESENTER_HOST` | `192.168.0.200` | IP address of desktop running ProPresenter 7 |
-| `PROPRESENTER_PORT` | `1025` | ProPresenter OpenAPI port (Preferences -> Network) |
-| `CLOUDFLARE_QUERY_URL`| *(Cloudflare URL)* | Endpoint for Cloudflare D1 SQL query API |
-| `CLOUDFLARE_API_TOKEN`| *(Cloudflare Token)* | Cloudflare API Bearer token for D1 database access |
+| Environment Variable | Description |
+| :--- | :--- |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account identifier |
+| `CLOUDFLARE_DATABASE_ID` | Cloudflare D1 database UUID |
+| `CLOUDFLARE_API_TOKEN` | Bearer token with D1 permissions |
+The Cloudflare D1 query URL is automatically framed dynamically in `src/services/bible-service.js`:
+`https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`
 
-### 3.3 Safe Version Control Strategy:
-- `config.json`: Tracked in git with placeholder token (`"your_cloudflare_api_token_here"`).
-- `config.local.json`: Local production credentials file, automatically excluded via `.gitignore`.
-- `.gitignore`: Retains ignore rules for `.env` and `config.local.json`.
-
-### 3.4 Client-Side Configuration Resolution (`js/config.js`):
-- Priority 1: URL Query Parameters (`?ip=192.168.0.200&port=1025`)
-- Priority 2: HTML5 `localStorage` (`proPresenterIP`, `proPresenterPort`)
-- Priority 3: Static Defaults (`192.168.0.200:1025`)
+No `.env` or `config.json` files are needed or tracked.
 
 ---
 
@@ -99,10 +90,9 @@ To resolve GitHub push protection and secret scanning rejections caused by commi
 
 ```
 Propresenter-Control/
-├── config.json                  # Main JSON configuration (safe placeholders, tracked in git)
-├── config.local.json            # Local private credentials override (Git ignored)
-├── server.js                    # Express.js server, RSS feeds, reverse proxy, network discovery
+├── setup-env.bat                 # 1-Click interactive script to set Cloudflare environment variables
 ├── allow-firewall-8080.bat      # 1-Click batch script to open Windows Firewall for port 8080
+├── server.js                    # Express.js server, RSS feeds, reverse proxy, network discovery
 ├── package.json                 # Project manifest, dependencies, and npm scripts
 ├── README.md                    # Primary human documentation and volunteer setup guide
 ├── PROJECT_SUMMARY.md           # Machine & AI agent context document (this file)
@@ -110,7 +100,6 @@ Propresenter-Control/
 ├── index.html                   # Root entry router (redirects to /pages/login.html or /pages/index.html)
 │
 ├── src/
-│   ├── config.js                # Centralized configuration loader (Properties / JSON / env)
 │   ├── background-image.png     # Application presentation asset
 │   ├── Propresenter.jpg         # Application logo asset
 │   └── services/
@@ -287,9 +276,10 @@ When editing, refactoring, or extending this repository, AI agents MUST respect 
    - Always remember ProPresenter OpenAPI slide indices start at `0`. Never convert to 1-based indexing when making API calls.
 2. **Never Mix Songs and Bible Content**:
    - The RSS feed and `C:\ProPresenter Files\Bible_Verse.txt` MUST remain pure Scripture. Do not allow song lyrics to be routed to `/api/bible/live`.
-3. **Preserve Configuration Fallbacks**:
-   - In `src/config.js`, preserve loading priority: `config.json` -> `config.properties` -> `.env` -> `process.env`.
-   - Never commit private Cloudflare tokens or plain passwords to public repositories.
+3. **Zero-Config & Environment Invariant**:
+   - Web server port is static (`8080`).
+   - ProPresenter connection is strictly client-driven via browser `localStorage` (`proPresenterBaseURL`).
+   - Cloudflare D1 credentials are read strictly from system environment variables (`process.env`). Do not introduce `.env` or plaintext token files.
 4. **Maintain Reactive Central State**:
    - UI components must communicate through `store.subscribe('event', handler)` and `store.setState({ key: val })` rather than tightly-coupled cross-controller method invocations.
 5. **Honor Viewport Geometry**:

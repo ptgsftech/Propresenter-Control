@@ -15,9 +15,6 @@ const fs = require('fs');
 const http = require('http');
 const os = require('os');
 
-// Load centralized configuration from config.properties / config.json / environment
-const config = require('./src/config');
-
 const bibleService = require('./src/services/bible-service');
 
 const app = express();
@@ -26,10 +23,9 @@ app.set('etag', false);
 // ==============================================================================
 // 1. CONFIGURATION
 // ==============================================================================
-const PORT = config.PORT;
-const PROPRESENTER_HOST = config.PROPRESENTER_HOST;
-const PROPRESENTER_PORT = config.PROPRESENTER_PORT;
-const PROPRESENTER_BASE_URL = config.PROPRESENTER_BASE_URL;
+// Web server port is static (8080).
+// ProPresenter host & port are managed dynamically by frontend user input in localStorage.
+const PORT = 8080;
 
 // ==============================================================================
 // 2. MIDDLEWARE
@@ -68,9 +64,7 @@ app.get('/api/health', (req, res) => {
  */
 app.get('/api/config', (req, res) => {
   res.json({
-    host: PROPRESENTER_HOST,
-    port: PROPRESENTER_PORT,
-    baseURL: PROPRESENTER_BASE_URL
+    port: PORT
   });
 });
 
@@ -80,13 +74,14 @@ app.get('/api/config', (req, res) => {
  * Useful when client devices encounter cross-origin or local network routing blocks.
  */
 app.all('/api/proxy/*', async (req, res) => {
+  const targetHost = req.headers['x-propresenter-host'] || req.query.host || '127.0.0.1:1025';
   const targetPath = req.url.replace(/^\/api\/proxy/, '');
-  const targetUrl = `${PROPRESENTER_BASE_URL}${targetPath}`;
+  const targetUrl = `http://${targetHost}${targetPath}`;
 
   try {
     const fetchOptions = {
       method: req.method,
-      headers: { ...req.headers, host: `${PROPRESENTER_HOST}:${PROPRESENTER_PORT}` }
+      headers: { ...req.headers, host: targetHost }
     };
 
     if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
@@ -459,7 +454,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('\n=================================================================');
   console.log('  PROPRESENTER WEB STUDIO CONTROLLER - NODE.JS SERVER READY');
   console.log('=================================================================');
-  console.log(`  * Config Source:      ${config.loadedFrom}`);
+  console.log(`  * Local Port:         ${PORT} (Static)`);
   console.log(`  * Local Access:       http://localhost:${PORT}/pages/index.html?bypass=true`);
   console.log(`  * Standard Login:     http://localhost:${PORT}/`);
   console.log(`  * Stage Monitor:      http://localhost:${PORT}/stage`);
@@ -470,8 +465,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`  * http://${ip}:${PORT}/stage (Musician Confidence Monitor)`);
     });
   }
-  console.log('\n  Target ProPresenter Host:');
-  console.log(`  * OpenAPI URL:        ${PROPRESENTER_BASE_URL}`);
+  console.log('\n  Cloudflare D1 Bible Engine (System Environment Variables):');
+  console.log(`  * Query URL:          ${bibleService.queryUrl ? bibleService.queryUrl : 'Not configured (check environment variables)'}`);
+  console.log(`  * API Token:          ${bibleService.apiToken ? 'Configured [PROTECTED]' : 'Not configured (check environment variables)'}`);
   console.log('=================================================================\n');
 
   // Pre-load book aliases from Cloudflare D1 database into memory

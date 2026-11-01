@@ -14,9 +14,6 @@ scratch/
 legacy/
 .system_generated/
 
-# Local private configuration containing real tokens/secrets (never pushed to GitHub)
-config.local.json
-
 # Legacy environment files (blocked by GitHub rules)
 .env
 .env.*

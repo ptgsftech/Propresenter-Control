@@ -8,12 +8,16 @@
  * @license MIT
  */
 
-const config = require('../config');
-
 class BibleService {
   constructor() {
-    this.queryUrl = config.CLOUDFLARE_QUERY_URL || process.env.CLOUDFLARE_QUERY_URL || '';
-    this.apiToken = config.CLOUDFLARE_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN || '';
+    const accountId = (process.env.CLOUDFLARE_ACCOUNT_ID || '').trim();
+    const databaseId = (process.env.CLOUDFLARE_DATABASE_ID || '').trim();
+
+    // Dynamically frame the Cloudflare D1 query URL from Account ID and Database ID
+    this.queryUrl = (accountId && databaseId)
+      ? `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`
+      : '';
+    this.apiToken = (process.env.CLOUDFLARE_API_TOKEN || '').trim();
     this.versionsCache = null;
     this.booksCache = new Map();
     this.activeLiveVerse = {
@@ -36,7 +40,9 @@ class BibleService {
    */
   async queryD1(sql, params = []) {
     if (!this.queryUrl || !this.apiToken) {
-      throw new Error('Cloudflare D1 is not configured. Check CLOUDFLARE_QUERY_URL and CLOUDFLARE_API_TOKEN in config.properties or config.json');
+      throw new Error(
+        'Cloudflare D1 is not configured. Please set CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_DATABASE_ID, and CLOUDFLARE_API_TOKEN in system environment variables.'
+      );
     }
 
     const payload = {
