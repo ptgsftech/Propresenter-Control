@@ -29,8 +29,11 @@
 
     <!-- 1. MASTER TOP HEADER -->
     <header class="master-header">
-      <!-- Left: Logo, Remote Title, Host IP & Logout Button -->
+      <!-- Left: Sidebar Toggle, Logo, Remote Title, Host IP & Logout Button -->
       <div class="brand-section">
+        <button type="button" class="btn-sidebar-toggle" id="sidebarToggleBtn" title="Toggle Navigation Sidebar (Menu)" aria-label="Toggle Navigation Sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
         <img src="../src/Propresenter.jpg" alt="ProPresenter" class="brand-logo-img shadow-sm">
         <div class="brand-text-container">
           <div class="d-flex align-items-center gap-2">
@@ -48,32 +51,8 @@
         </div>
       </div>
 
-      <!-- Center-Right: View Switcher (Show vs Bible) + Library Catalog + Search + Screen Radio Controls + RSS -->
+      <!-- Center: Screen Controls (Audience & Stage) + Looks -->
       <div class="header-center-info">
-        <!-- View Switcher (Show vs Bible) -->
-        <div class="workspace-view-switcher shadow-sm me-1" role="group" aria-label="Workspace View">
-          <button type="button" class="btn-studio-view active" id="viewModeShowBtn" title="Display Presentation Show View (Ctrl+1)">
-            <i class="fas fa-desktop me-1"></i> Show
-          </button>
-          <button type="button" class="btn-studio-view" id="viewModeBibleBtn" title="Display Bible Scripture Presenter View (Ctrl+2)">
-            <i class="fas fa-bible me-1"></i> Bible
-          </button>
-        </div>
-
-        <!-- Library & Playlists Catalog Popup Trigger (Ctrl+L) -->
-        <button type="button" class="btn-studio btn-studio-search shadow-sm" id="headerLibraryBtn" title="Open Library & Playlists Catalog (Ctrl+L / Cmd+L)">
-          <i class="fas fa-book-bookmark text-warning"></i>
-          <span class="d-none d-md-inline fw-bold">Library</span>
-          <kbd class="search-kbd d-none d-lg-inline ms-1">Ctrl+L</kbd>
-        </button>
-
-        <!-- Global Multi-Mode Song Search Button (Ctrl+K) -->
-        <button type="button" class="btn-studio btn-studio-search shadow-sm" id="headerSongSearchBtn" title="Search songs across all libraries (Ctrl+K / Cmd+K)">
-          <i class="fas fa-magnifying-glass text-orange"></i>
-          <span class="d-none d-lg-inline fw-semibold">Search</span>
-          <kbd class="search-kbd d-none d-sm-inline">Ctrl+K</kbd>
-        </button>
-
         <!-- Audience & Stage Screen Controls: Red outline when OFF, Green filled when ON -->
         <div class="header-screen-controls d-flex align-items-center gap-1">
           <button type="button" class="btn-screen-radio" id="headerAudienceToggleBtn" title="Audience Screen: Click to toggle (Red outline = OFF, Green = ON)">
@@ -87,30 +66,12 @@
         </div>
 
         <!-- Audience Looks Dropdown -->
-        <div class="d-none d-xl-flex align-items-center gap-1">
+        <div class="d-none d-sm-flex align-items-center gap-1">
           <label for="headerLooksSelect" class="small text-secondary mb-0 fw-bold"><i class="fas fa-eye text-purple me-1"></i>Look:</label>
           <select class="form-select form-select-sm bg-dark text-white border-secondary w-auto py-0 px-2" id="headerLooksSelect" style="font-size: 11.5px; height: 28px;">
             <option>Loading looks...</option>
           </select>
         </div>
-
-        <!-- Direct ProPresenter RSS Feeds Access Button (Only shown in Bible view) -->
-        <button type="button" class="btn-studio btn-studio-cyan shadow-sm" id="topNavRssFeedsBtn" style="display: none;" title="View & Copy ProPresenter RSS URLs (Ctrl+R)">
-          <i class="fas fa-rss text-black"></i>
-          <span class="d-none d-md-inline fw-bold text-black">RSS Feeds</span>
-          <kbd class="search-kbd d-none d-lg-inline text-dark border-dark ms-1">Ctrl+R</kbd>
-        </button>
-
-        <!-- Stage Monitor Link / QR Button -->
-        <button class="btn-studio btn-studio-orange shadow-sm" id="openStageMonitorQRBtn" title="Open Stage Monitor & Mobile QR (Ctrl+M)">
-          <i class="fas fa-qrcode"></i>
-          <span class="d-none d-xl-inline ms-1">Stage QR</span>
-        </button>
-
-        <!-- Shortcuts Help Button -->
-        <button type="button" class="btn-studio btn-icon-only text-secondary" id="headerShortcutsBtn" title="Keyboard Shortcuts Reference (Ctrl+/)">
-          <i class="fas fa-keyboard"></i>
-        </button>
       </div>
 
       <!-- Right: System Time Digital Clock & Date -->
@@ -122,6 +83,116 @@
 
     <!-- 2. MAIN WORKSPACE VIEWPORT (EXPANSIVE FULL VIEW) -->
     <div class="workspace-viewport">
+
+      <!-- LEFT COLLAPSIBLE NAVIGATION SIDEBAR -->
+      <aside class="col-sidebar-left" id="appLeftSidebar" aria-label="Main Navigation">
+        <!-- Sidebar Brand / Collapse Header -->
+        <div class="sidebar-brand-strip">
+          <div class="sidebar-strip-title">
+            <i class="fas fa-layer-group text-orange me-2"></i>
+            <span class="sidebar-label">Navigation</span>
+          </div>
+          <button type="button" class="btn-sidebar-collapse" id="sidebarCollapseBtn" title="Collapse / Expand Sidebar" aria-label="Collapse / Expand Sidebar">
+            <i class="fas fa-angles-left collapse-icon" id="sidebarCollapseIcon"></i>
+          </button>
+        </div>
+
+        <!-- Sidebar Navigation Items Tree -->
+        <nav class="sidebar-nav-container">
+          <!-- 1. SHOW SECTION -->
+          <div class="nav-tree-group">
+            <div class="sidebar-nav-item active" id="sidebarNavShow" data-view="show" title="1. Show Presentation View (Ctrl+1)">
+              <div class="nav-item-main" id="sidebarNavShowMain">
+                <span class="nav-badge-num">1.</span>
+                <i class="fas fa-desktop nav-icon"></i>
+                <span class="nav-label">Show</span>
+              </div>
+              <button type="button" class="btn-tree-toggle" id="toggleShowTreeBtn" title="Toggle Show submenu" aria-label="Toggle Show submenu">
+                <i class="fas fa-chevron-down tree-chevron" id="chevronShowTree"></i>
+              </button>
+            </div>
+            <!-- Sub-items 1.1 & 1.2 -->
+            <div class="sidebar-sub-list" id="showSubList">
+              <!-- 1.1 Library -->
+              <button type="button" class="sidebar-sub-item" id="sidebarLibraryBtn" title="1.1 Open Library & Playlists Catalog (Ctrl+L)">
+                <div class="sub-item-main">
+                  <span class="sub-badge-num">1.1</span>
+                  <i class="fas fa-book-bookmark text-warning sub-icon"></i>
+                  <span class="sub-label">Library</span>
+                </div>
+                <kbd class="sidebar-kbd">Ctrl+L</kbd>
+              </button>
+              <!-- 1.2 Search -->
+              <button type="button" class="sidebar-sub-item" id="sidebarSearchBtn" title="1.2 Global Multi-Mode Song Search (Ctrl+K)">
+                <div class="sub-item-main">
+                  <span class="sub-badge-num">1.2</span>
+                  <i class="fas fa-magnifying-glass text-orange sub-icon"></i>
+                  <span class="sub-label">Search</span>
+                </div>
+                <kbd class="sidebar-kbd">Ctrl+K</kbd>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. BIBLE SECTION -->
+          <div class="nav-tree-group">
+            <div class="sidebar-nav-item" id="sidebarNavBible" data-view="bible" title="2. Bible Scripture Presenter (Ctrl+2)">
+              <div class="nav-item-main" id="sidebarNavBibleMain">
+                <span class="nav-badge-num">2.</span>
+                <i class="fas fa-bible nav-icon"></i>
+                <span class="nav-label">Bible</span>
+              </div>
+              <button type="button" class="btn-tree-toggle" id="toggleBibleTreeBtn" title="Toggle Bible submenu" aria-label="Toggle Bible submenu">
+                <i class="fas fa-chevron-down tree-chevron" id="chevronBibleTree"></i>
+              </button>
+            </div>
+            <!-- Sub-items 2.1 -->
+            <div class="sidebar-sub-list" id="bibleSubList">
+              <!-- 2.1 RSS Feeds -->
+              <button type="button" class="sidebar-sub-item" id="sidebarRssBtn" title="2.1 ProPresenter RSS URLs (Ctrl+R)">
+                <div class="sub-item-main">
+                  <span class="sub-badge-num">2.1</span>
+                  <i class="fas fa-rss text-info sub-icon"></i>
+                  <span class="sub-label">Rss Feeds</span>
+                </div>
+                <kbd class="sidebar-kbd">Ctrl+R</kbd>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. STAGE QR -->
+          <div class="nav-tree-group">
+            <button type="button" class="sidebar-nav-item" id="sidebarStageQRBtn" title="3. Stage Monitor & Mobile QR (Ctrl+M)">
+              <div class="nav-item-main">
+                <span class="nav-badge-num">3.</span>
+                <i class="fas fa-qrcode text-cyan nav-icon"></i>
+                <span class="nav-label">Stage QR</span>
+              </div>
+              <kbd class="sidebar-kbd">Ctrl+M</kbd>
+            </button>
+          </div>
+
+          <!-- 4. SHORTCUTS -->
+          <div class="nav-tree-group">
+            <button type="button" class="sidebar-nav-item" id="sidebarShortcutsBtn" title="4. Keyboard Shortcuts Reference (Ctrl+/)">
+              <div class="nav-item-main">
+                <span class="nav-badge-num">4.</span>
+                <i class="fas fa-keyboard text-secondary nav-icon"></i>
+                <span class="nav-label">Shortcuts</span>
+              </div>
+              <kbd class="sidebar-kbd">Ctrl+/</kbd>
+            </button>
+          </div>
+        </nav>
+
+        <!-- Sidebar Footer Status -->
+        <div class="sidebar-footer">
+          <div class="sidebar-footer-info">
+            <span class="live-dot connected"></span>
+            <span class="sidebar-footer-text">ProPresenter Ready</span>
+          </div>
+        </div>
+      </aside>
 
       <!-- ====================================================================
            CENTER COLUMN: Full View Slide Cues Deck / Bible Scripture
@@ -622,27 +693,27 @@
     <!-- 3. MOBILE BOTTOM NAVIGATION & SIDEBAR BACKDROP -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <nav class="mobile-nav-bar">
-      <a href="#cues" class="mobile-nav-item active" data-tab="cues" id="mobNavCues" title="Show or Bible View">
-        <i class="fas fa-layer-group"></i>
-        <span>Presenter</span>
-      </a>
-      <a href="#clears" class="mobile-nav-item" data-tab="clears" id="mobNavClears" title="Quick Clears & Screens">
-        <i class="fas fa-eraser"></i>
-        <span>Clears</span>
-      </a>
-      <a href="#sets" class="mobile-nav-item" data-tab="sets" id="mobNavSets" title="Playlists & Songs">
-        <i class="fas fa-list-check"></i>
+    <nav class="mobile-nav-bar" id="mobileNavBar" aria-label="Mobile Bottom Navigation">
+      <button type="button" class="mobile-nav-item active" id="mobileNavShowBtn" title="1. Show Presentation View">
+        <i class="fas fa-desktop"></i>
+        <span>Show</span>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileNavBibleBtn" title="2. Bible Scripture View">
+        <i class="fas fa-bible"></i>
+        <span>Bible</span>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileNavLibraryBtn" title="1.1 Library Catalog">
+        <i class="fas fa-book-bookmark text-warning"></i>
         <span>Library</span>
-      </a>
-      <a href="#drawer" class="mobile-nav-item" data-tab="drawer" id="mobNavDrawer" title="Audio, Stage & Timers">
-        <i class="fas fa-sliders"></i>
-        <span>Tools</span>
-      </a>
-      <a href="#stage" class="mobile-nav-item" data-tab="stage" id="mobNavStage" title="Musician Confidence Monitor">
-        <i class="fas fa-chalkboard-user"></i>
-        <span>Stage</span>
-      </a>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileNavSearchBtn" title="1.2 Global Search">
+        <i class="fas fa-magnifying-glass text-orange"></i>
+        <span>Search</span>
+      </button>
+      <button type="button" class="mobile-nav-item" id="mobileNavMenuBtn" title="Navigation Sidebar Menu">
+        <i class="fas fa-bars"></i>
+        <span>Menu</span>
+      </button>
     </nav>
 
   </div>
@@ -1049,6 +1120,7 @@
         <div class="modal-body p-3">
           <table class="table table-dark table-borderless table-sm mb-0">
             <tbody>
+              <tr><td class="text-secondary">Toggle Navigation Sidebar</td><td class="text-end"><kbd class="bible-kbd">Ctrl+\</kbd></td></tr>
               <tr><td class="text-secondary">Library & Playlists Catalog</td><td class="text-end"><kbd class="bible-kbd">Ctrl+L</kbd> / <kbd class="bible-kbd">Cmd+L</kbd></td></tr>
               <tr><td class="text-secondary">Global Song Search</td><td class="text-end"><kbd class="bible-kbd">Ctrl+K</kbd> / <kbd class="bible-kbd">Cmd+K</kbd></td></tr>
               <tr><td class="text-secondary">Bible Scripture Search Focus</td><td class="text-end"><kbd class="bible-kbd">Ctrl+B</kbd> / <kbd class="bible-kbd">Cmd+B</kbd></td></tr>

@@ -42,10 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const statusDot = document.getElementById('connectionStatusDot');
   const statusText = document.getElementById('connectionStatusText');
   const versionBadge = document.getElementById('propVersionBadge');
-  const audienceHeaderBtn = document.getElementById('headerAudienceBtn');
-  const stageHeaderBtn = document.getElementById('headerStageBtn');
-  const audienceBadge = document.getElementById('headerAudienceBadge');
-  const stageBadge = document.getElementById('headerStageBadge');
+  const audienceHeaderBtn = document.getElementById('headerAudienceToggleBtn');
+  const stageHeaderBtn = document.getElementById('headerStageToggleBtn');
 
   // =========================================================================
   // 3. STREAM CLIENT INITIALIZATION (POST /v1/status/updates)
@@ -161,15 +159,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const headerStgBtn = document.getElementById('headerStageToggleBtn');
 
   function syncHeaderScreenButtons() {
-    const isAud = store.state.audienceScreensEnabled;
-    const isStg = store.state.stageScreensEnabled;
+    const isAud = Boolean(store.state.audienceScreensEnabled);
+    const isStg = Boolean(store.state.stageScreensEnabled);
 
     if (headerAudBtn) {
-      headerAudBtn.classList.toggle('is-on', Boolean(isAud));
+      headerAudBtn.classList.toggle('is-on', isAud);
+      headerAudBtn.setAttribute('aria-pressed', isAud ? 'true' : 'false');
       headerAudBtn.title = `Audience Screen: ${isAud ? 'Active (Click to Turn OFF)' : 'Inactive (Click to Turn ON)'}`;
     }
     if (headerStgBtn) {
-      headerStgBtn.classList.toggle('is-on', Boolean(isStg));
+      headerStgBtn.classList.toggle('is-on', isStg);
+      headerStgBtn.setAttribute('aria-pressed', isStg ? 'true' : 'false');
       headerStgBtn.title = `Stage Screen: ${isStg ? 'Active (Click to Turn OFF)' : 'Inactive (Click to Turn ON)'}`;
     }
   }
@@ -177,14 +177,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (headerAudBtn) {
     headerAudBtn.addEventListener('click', async () => {
       try {
-        const current = await apiClient.getAudienceScreenStatus();
-        const isTrue = (current === true || current === 'true' || (current && current.status === true));
-        const nextStatus = !isTrue;
-        await apiClient.setAudienceScreenStatus(nextStatus);
+        const nextStatus = !Boolean(store.state.audienceScreensEnabled);
+        // Optimistic UI update
         store.setState({ audienceScreensEnabled: nextStatus });
+        syncHeaderScreenButtons();
+
+        await apiClient.setAudienceScreenStatus(nextStatus);
+
+        // Verify confirmed state from ProPresenter
+        const confirmed = await apiClient.getAudienceScreenStatus();
+        const isTrue = (confirmed === true || confirmed === 'true' || (confirmed && confirmed.status === true));
+        store.setState({ audienceScreensEnabled: isTrue });
         syncHeaderScreenButtons();
       } catch (e) {
         console.error('[App] Audience toggle error:', e);
+        // Revert to actual state on error
+        try {
+          const revertVal = await apiClient.getAudienceScreenStatus();
+          store.setState({ audienceScreensEnabled: Boolean(revertVal) });
+          syncHeaderScreenButtons();
+        } catch (_) {}
       }
     });
   }
@@ -192,14 +204,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (headerStgBtn) {
     headerStgBtn.addEventListener('click', async () => {
       try {
-        const current = await apiClient.getStageScreenStatus();
-        const isTrue = (current === true || current === 'true' || (current && current.status === true));
-        const nextStatus = !isTrue;
-        await apiClient.setStageScreenStatus(nextStatus);
+        const nextStatus = !Boolean(store.state.stageScreensEnabled);
+        // Optimistic UI update
         store.setState({ stageScreensEnabled: nextStatus });
+        syncHeaderScreenButtons();
+
+        await apiClient.setStageScreenStatus(nextStatus);
+
+        // Verify confirmed state from ProPresenter
+        const confirmed = await apiClient.getStageScreenStatus();
+        const isTrue = (confirmed === true || confirmed === 'true' || (confirmed && confirmed.status === true));
+        store.setState({ stageScreensEnabled: isTrue });
         syncHeaderScreenButtons();
       } catch (e) {
         console.error('[App] Stage toggle error:', e);
+        // Revert to actual state on error
+        try {
+          const revertVal = await apiClient.getStageScreenStatus();
+          store.setState({ stageScreensEnabled: Boolean(revertVal) });
+          syncHeaderScreenButtons();
+        } catch (_) {}
       }
     });
   }
@@ -207,33 +231,179 @@ document.addEventListener('DOMContentLoaded', async () => {
   store.subscribe('screen:audience', () => syncHeaderScreenButtons());
   store.subscribe('screen:stage', () => syncHeaderScreenButtons());
 
-  // Initial check of screen statuses
-  apiClient.getAudienceScreenStatus().then(st => {
-    const isTrue = (st === true || st === 'true' || (st && st.status === true));
-    store.setState({ audienceScreensEnabled: isTrue });
-    syncHeaderScreenButtons();
-  }).catch(() => {});
+  /**
+   * Dedicated background polling for Audience and Stage screen statuses.
+   * Periodically queries ProPresenter endpoints to keep UI controls in exact sync.
+   */
+  let isPollingScreens = false;
+  async function pollScreenStatuses() {
+    if (isPollingScreens) return;
+    isPollingScreens = true;
+    try {
+      const [audStatus, stgStatus] = await Promise.all([
+        apiClient.getAudienceScreenStatus().catch(() => null),
+        apiClient.getStageScreenStatus().catch(() => null)
+      ]);
 
-  apiClient.getStageScreenStatus().then(st => {
-    const isTrue = (st === true || st === 'true' || (st && st.status === true));
-    store.setState({ stageScreensEnabled: isTrue });
-    syncHeaderScreenButtons();
-  }).catch(() => {});
+      const updates = {};
+      if (audStatus !== null) {
+        const isAud = (audStatus === true || audStatus === 'true' || (audStatus && audStatus.status === true));
+        if (store.state.audienceScreensEnabled !== isAud) {
+          updates.audienceScreensEnabled = isAud;
+        }
+      }
+      if (stgStatus !== null) {
+        const isStg = (stgStatus === true || stgStatus === 'true' || (stgStatus && stgStatus.status === true));
+        if (store.state.stageScreensEnabled !== isStg) {
+          updates.stageScreensEnabled = isStg;
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        store.setState(updates);
+        syncHeaderScreenButtons();
+      }
+    } catch (err) {
+      // Ignore background network transient errors
+    } finally {
+      isPollingScreens = false;
+    }
+  }
+
+  // Initial immediate fetch
+  pollScreenStatuses();
+
+  // Periodic polling every 2.0 seconds
+  const SCREEN_POLL_INTERVAL_MS = 2000;
+  setInterval(pollScreenStatuses, SCREEN_POLL_INTERVAL_MS);
 
   // =========================================================================
-  // 4C. WORKSPACE VIEW SWITCHER (Show vs Bible)
+  // 4C. COLLAPSIBLE LEFT SIDEBAR & WORKSPACE NAVIGATION
   // =========================================================================
-  const viewModeShowBtn = document.getElementById('viewModeShowBtn');
-  const viewModeBibleBtn = document.getElementById('viewModeBibleBtn');
   const cuesSection = document.getElementById('cuesSectionWrapper');
   const bibleSection = document.getElementById('middleRow3Bible');
-  const topNavRssFeedsBtn = document.getElementById('topNavRssFeedsBtn');
 
+  // Sidebar DOM elements
+  const appLeftSidebar = document.getElementById('appLeftSidebar');
+  const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+  const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+  const sidebarCollapseIcon = document.getElementById('sidebarCollapseIcon');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+  // Primary Nav Items
+  const sidebarNavShow = document.getElementById('sidebarNavShow');
+  const sidebarNavShowMain = document.getElementById('sidebarNavShowMain');
+  const toggleShowTreeBtn = document.getElementById('toggleShowTreeBtn');
+  const showSubList = document.getElementById('showSubList');
+  const chevronShowTree = document.getElementById('chevronShowTree');
+
+  const sidebarNavBible = document.getElementById('sidebarNavBible');
+  const sidebarNavBibleMain = document.getElementById('sidebarNavBibleMain');
+  const toggleBibleTreeBtn = document.getElementById('toggleBibleTreeBtn');
+  const bibleSubList = document.getElementById('bibleSubList');
+  const chevronBibleTree = document.getElementById('chevronBibleTree');
+
+  const sidebarStageQRBtn = document.getElementById('sidebarStageQRBtn');
+  const sidebarShortcutsBtn = document.getElementById('sidebarShortcutsBtn');
+  const sidebarRssBtn = document.getElementById('sidebarRssBtn');
+
+  // Mobile Bottom Nav Elements
+  const mobileNavShowBtn = document.getElementById('mobileNavShowBtn');
+  const mobileNavBibleBtn = document.getElementById('mobileNavBibleBtn');
+  const mobileNavMenuBtn = document.getElementById('mobileNavMenuBtn');
+
+  /**
+   * Closes the mobile offcanvas drawer if screen is <= 992px
+   */
+  function closeMobileDrawer() {
+    if (appLeftSidebar) appLeftSidebar.classList.remove('open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  window.closeMobileDrawer = closeMobileDrawer;
+
+  /**
+   * Opens the mobile offcanvas drawer
+   */
+  function openMobileDrawer() {
+    if (appLeftSidebar) appLeftSidebar.classList.add('open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  window.openMobileDrawer = openMobileDrawer;
+
+  /**
+   * Toggles the left sidebar state:
+   * - On mobile (<= 992px): slides offcanvas drawer in/out with backdrop
+   * - On desktop (> 992px): collapses/expands sidebar rail (230px <-> 58px)
+   */
+  function toggleSidebar() {
+    const isMobile = window.innerWidth <= 992;
+    if (isMobile) {
+      if (appLeftSidebar?.classList.contains('open')) {
+        closeMobileDrawer();
+      } else {
+        openMobileDrawer();
+      }
+    } else {
+      if (!appLeftSidebar) return;
+      const isCollapsed = appLeftSidebar.classList.toggle('collapsed');
+      if (sidebarCollapseIcon) {
+        sidebarCollapseIcon.className = isCollapsed
+          ? 'fas fa-angles-right collapse-icon'
+          : 'fas fa-angles-left collapse-icon';
+      }
+      localStorage.setItem('proPresenterSidebarCollapsed', isCollapsed ? 'true' : 'false');
+    }
+  }
+  window.toggleSidebar = toggleSidebar;
+
+  // Restore saved desktop collapse preference
+  if (window.innerWidth > 992 && localStorage.getItem('proPresenterSidebarCollapsed') === 'true') {
+    appLeftSidebar?.classList.add('collapsed');
+    if (sidebarCollapseIcon) {
+      sidebarCollapseIcon.className = 'fas fa-angles-right collapse-icon';
+    }
+  }
+
+  // Bind Sidebar Collapse / Toggle Triggers
+  sidebarToggleBtn?.addEventListener('click', toggleSidebar);
+  sidebarCollapseBtn?.addEventListener('click', toggleSidebar);
+  sidebarBackdrop?.addEventListener('click', closeMobileDrawer);
+  mobileNavMenuBtn?.addEventListener('click', openMobileDrawer);
+
+  // Submenu tree expand/collapse handlers
+  toggleShowTreeBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isCollapsed = showSubList?.classList.toggle('collapsed');
+    if (chevronShowTree) {
+      chevronShowTree.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+    }
+  });
+
+  toggleBibleTreeBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isCollapsed = bibleSubList?.classList.toggle('collapsed');
+    if (chevronBibleTree) {
+      chevronBibleTree.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+    }
+  });
+
+  /**
+   * Switches workspace between 'show' (Presentation deck) and 'bible' (Scripture presenter)
+   * @param {'show'|'bible'} view
+   */
   function setWorkspaceView(view) {
     if (view === 'bible') {
-      viewModeBibleBtn?.classList.add('active');
-      viewModeShowBtn?.classList.remove('active');
-      
+      sidebarNavBible?.classList.add('active');
+      sidebarNavShow?.classList.remove('active');
+      mobileNavBibleBtn?.classList.add('active');
+      mobileNavShowBtn?.classList.remove('active');
+
+      // Expand Bible sub-list
+      bibleSubList?.classList.remove('collapsed');
+      if (chevronBibleTree) chevronBibleTree.style.transform = 'rotate(0deg)';
+
       // Hide Presentation Section completely
       cuesSection?.classList.add('d-none', 'workspace-view-hidden');
       if (cuesSection) cuesSection.style.setProperty('display', 'none', 'important');
@@ -241,17 +411,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Display Bible Section completely
       bibleSection?.classList.remove('d-none', 'workspace-view-hidden');
       if (bibleSection) bibleSection.style.setProperty('display', 'flex', 'important');
-
-      // Requirement 4: The RSS feed should only show while selecting the Bible option
-      if (topNavRssFeedsBtn) {
-        topNavRssFeedsBtn.style.display = 'inline-flex';
-      }
       
+      // Automatically trigger Bible slide 1 and start slide polling while Bible screen is active
+      if (window.bibleCtrl) {
+        window.bibleCtrl.onEnterBibleView();
+      }
+
       localStorage.setItem('proPresenterWorkspaceView', 'bible');
     } else {
-      viewModeShowBtn?.classList.add('active');
-      viewModeBibleBtn?.classList.remove('active');
-      
+      sidebarNavShow?.classList.add('active');
+      sidebarNavBible?.classList.remove('active');
+      mobileNavShowBtn?.classList.add('active');
+      mobileNavBibleBtn?.classList.remove('active');
+
+      // Expand Show sub-list
+      showSubList?.classList.remove('collapsed');
+      if (chevronShowTree) chevronShowTree.style.transform = 'rotate(0deg)';
+
+      // Stop slide polling when exiting Bible screen
+      if (window.bibleCtrl) {
+        window.bibleCtrl.onLeaveBibleView();
+      }
+
       // Hide Bible Section completely
       bibleSection?.classList.add('d-none', 'workspace-view-hidden');
       if (bibleSection) bibleSection.style.setProperty('display', 'none', 'important');
@@ -259,11 +440,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Display Presentation Section completely
       cuesSection?.classList.remove('d-none', 'workspace-view-hidden');
       if (cuesSection) cuesSection.style.setProperty('display', 'flex', 'important');
-
-      // Requirement 4: Hide RSS Feed button when in Show view
-      if (topNavRssFeedsBtn) {
-        topNavRssFeedsBtn.style.display = 'none';
-      }
       
       localStorage.setItem('proPresenterWorkspaceView', 'show');
     }
@@ -271,21 +447,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.setWorkspaceView = setWorkspaceView;
 
-  viewModeShowBtn?.addEventListener('click', () => setWorkspaceView('show'));
-  viewModeBibleBtn?.addEventListener('click', () => setWorkspaceView('bible'));
+  // 1. Show Navigation Click
+  sidebarNavShowMain?.addEventListener('click', () => {
+    setWorkspaceView('show');
+    if (window.innerWidth <= 992) closeMobileDrawer();
+  });
+  mobileNavShowBtn?.addEventListener('click', () => {
+    setWorkspaceView('show');
+  });
 
-  // Top Nav direct RSS Feeds button
-  topNavRssFeedsBtn?.addEventListener('click', () => {
+  // 2. Bible Navigation Click
+  sidebarNavBibleMain?.addEventListener('click', () => {
+    setWorkspaceView('bible');
+    if (window.innerWidth <= 992) closeMobileDrawer();
+  });
+  mobileNavBibleBtn?.addEventListener('click', () => {
+    setWorkspaceView('bible');
+  });
+
+  // 2.1 RSS Feeds in Sidebar
+  sidebarRssBtn?.addEventListener('click', () => {
     setWorkspaceView('bible');
     if (window.bibleCtrl) {
       window.bibleCtrl.showRssModal();
     }
+    if (window.innerWidth <= 992) closeMobileDrawer();
   });
 
-  // Initialize with Show view (or user's saved preference)
-  const initialView = localStorage.getItem('proPresenterWorkspaceView') || 'show';
-  setWorkspaceView(initialView);
-
+  // Auto-close mobile drawer when Library or Search is clicked
+  document.getElementById('sidebarLibraryBtn')?.addEventListener('click', () => {
+    if (window.innerWidth <= 992) closeMobileDrawer();
+  });
+  document.getElementById('sidebarSearchBtn')?.addEventListener('click', () => {
+    if (window.innerWidth <= 992) closeMobileDrawer();
+  });
 
   // =========================================================================
   // 5. MODULAR CONTROLLERS INITIALIZATION
@@ -301,14 +496,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.playlistCtrl = playlistCtrl;
   window.songSearchCtrl = songSearchCtrl;
 
+  // Initialize Bible Controller early so onEnterBibleView is ready for view restore
+  if (window.BibleController) {
+    const bibleCtrl = new BibleController(apiClient, store);
+    window.bibleCtrl = bibleCtrl;
+    bibleCtrl.init().catch(err => console.warn('[App] BibleCtrl init error:', err));
+  }
+
   // Preload active presentation into cue grid
   presentationCtrl.loadInitialPresentation();
+
+  // Initialize with Show view (or user's saved preference)
+  const initialView = localStorage.getItem('proPresenterWorkspaceView') || 'show';
+  setWorkspaceView(initialView);
 
   // =========================================================================
   // 6. MODALS & UTILITIES
   // =========================================================================
   const qrModal = document.getElementById('stageMonitorQRModal');
-  const openQRBtn = document.getElementById('openStageMonitorQRBtn');
+  const openQRBtn = document.getElementById('sidebarStageQRBtn') || document.getElementById('openStageMonitorQRBtn');
   const closeQRBtn = document.getElementById('closeStageMonitorQRBtn');
   const qrTarget = document.getElementById('stageMonitorQRCodeTarget');
   const copyLinkBtn = document.getElementById('copyStageMonitorLinkBtn');
@@ -347,6 +553,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         qrModal.style.display = 'block';
       }
+      if (window.innerWidth <= 992 && typeof closeMobileDrawer === 'function') {
+        closeMobileDrawer();
+      }
     });
   }
 
@@ -360,81 +569,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Mobile Drawer & Backdrop Controls
-  const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-  const leftSidebar = document.querySelector('.col-sidebar-left');
-  const rightSidebar = document.querySelector('.col-sidebar-right');
-  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-  const leftSidebarCloseBtn = document.getElementById('leftSidebarCloseBtn');
-  const rightSidebarCloseBtn = document.getElementById('rightSidebarCloseBtn');
 
-  function closeAllSidebars() {
-    leftSidebar?.classList.remove('open');
-    rightSidebar?.classList.remove('open');
-    sidebarBackdrop?.classList.remove('active');
-  }
-
-  function toggleLeftSidebar() {
-    rightSidebar?.classList.remove('open');
-    const isOpen = leftSidebar?.classList.toggle('open');
-    if (isOpen) {
-      sidebarBackdrop?.classList.add('active');
-    } else {
-      sidebarBackdrop?.classList.remove('active');
-    }
-  }
-
-  function toggleRightSidebar() {
-    leftSidebar?.classList.remove('open');
-    const isOpen = rightSidebar?.classList.toggle('open');
-    if (isOpen) {
-      sidebarBackdrop?.classList.add('active');
-    } else {
-      sidebarBackdrop?.classList.remove('active');
-    }
-  }
-
-  sidebarToggleBtn?.addEventListener('click', toggleLeftSidebar);
-  leftSidebarCloseBtn?.addEventListener('click', closeAllSidebars);
-  rightSidebarCloseBtn?.addEventListener('click', closeAllSidebars);
-  sidebarBackdrop?.addEventListener('click', closeAllSidebars);
-
-  // Auto-close left sidebar on mobile when selecting a playlist or presentation
-  document.getElementById('playlistsList')?.addEventListener('click', (e) => {
-    if (window.innerWidth <= 992 && (e.target.closest('.sidebar-item-row') || e.target.closest('.tier-item-song'))) {
-      closeAllSidebars();
-    }
-  });
-
-  // Mobile Bottom Navigation Tabs (5 Ergonomic Actions)
-  const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
-  mobileNavItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const tab = item.getAttribute('data-tab');
-
-      if (tab === 'cues') {
-        closeAllSidebars();
-        mobileNavItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        const isBibleMode = document.getElementById('viewModeBibleBtn')?.classList.contains('active');
-        const targetView = isBibleMode ? document.getElementById('middleRow3Bible') : document.getElementById('cuesSectionWrapper');
-        targetView?.scrollIntoView({ behavior: 'smooth' });
-      } else if (tab === 'clears') {
-        closeAllSidebars();
-        mobileNavItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        document.getElementById('sidebarClearsRow')?.scrollIntoView({ behavior: 'smooth' });
-      } else if (tab === 'sets') {
-        closeAllSidebars();
-        playlistCtrl?.openModal('library');
-      } else if (tab === 'drawer') {
-        toggleRightSidebar();
-      } else if (tab === 'stage') {
-        window.open('/stage', '_blank');
-      }
-    });
-  });
 
   // Disconnect & Settings
   document.getElementById('disconnectBtn')?.addEventListener('click', () => {
@@ -446,11 +581,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Keyboard Shortcuts Modal Trigger
-  const headerShortcutsBtn = document.getElementById('headerShortcutsBtn');
+  const headerShortcutsBtn = document.getElementById('sidebarShortcutsBtn') || document.getElementById('headerShortcutsBtn');
   const shortcutsModalEl = document.getElementById('keyboardShortcutsModal');
   headerShortcutsBtn?.addEventListener('click', () => {
     if (shortcutsModalEl && window.bootstrap) {
       new bootstrap.Modal(shortcutsModalEl).show();
+    }
+    if (window.innerWidth <= 992 && typeof closeMobileDrawer === 'function') {
+      closeMobileDrawer();
     }
   });
 
@@ -459,6 +597,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // =========================================================================
   document.addEventListener('keydown', (e) => {
     const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable;
+
+    // Ctrl+\ -> Toggle Left Sidebar (Desktop Rail / Mobile Drawer)
+    if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
+      e.preventDefault();
+      if (typeof toggleSidebar === 'function') toggleSidebar();
+      return;
+    }
 
     // Ctrl+L or Cmd+L -> Open Library & Playlists Catalog
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
@@ -497,14 +642,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Ctrl+M -> Open Stage Monitor QR Access Modal
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'm') {
       e.preventDefault();
-      document.getElementById('openStageMonitorQRBtn')?.click();
+      document.getElementById('sidebarStageQRBtn')?.click() || document.getElementById('openStageMonitorQRBtn')?.click();
       return;
     }
 
     // Ctrl+/ or ? -> Open Keyboard Shortcuts Reference
     if ((e.ctrlKey || e.metaKey) && (e.key === '/' || e.key === '?')) {
       e.preventDefault();
-      headerShortcutsBtn?.click();
+      document.getElementById('sidebarShortcutsBtn')?.click() || headerShortcutsBtn?.click();
       return;
     }
 
@@ -542,14 +687,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // =========================================================================
-  // BIBLE PRESENTER SECTION - Cloudflare D1 Parallel Engine
-  // =========================================================================
-  if (window.BibleController) {
-    const bibleCtrl = new BibleController();
-    window.bibleCtrl = bibleCtrl;
-    await bibleCtrl.init();
-  }
 
   // Copy RSS Buttons Handler inside Modal
   document.querySelectorAll('.copy-rss-btn').forEach(btn => {

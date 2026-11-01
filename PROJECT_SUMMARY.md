@@ -1,489 +1,320 @@
-# ProPresenter Web Studio Controller: Comprehensive Project Summary & Handover Document
+# ProPresenter Web Studio Controller: AI Agent Project Summary & Architectural Context
 
-> **Document Version**: 2.0.0  
-> **Target Environment**: ProPresenter 7+ OpenAPI (`http://192.168.0.200:1025`)  
-> **Local Server Entry**: `http://localhost:8080/`  
-> **Created Date**: October 2026  
-> **Status**: Active & Complete  
+> **Document Type**: AI Chat & Agent Context Guide  
+> **Target Audience**: AI Agents (Antigravity, Cursor, Claude, ChatGPT, Windsurf, Copilot) & Software Engineers  
+> **System Name**: ProPresenter Web Studio Controller & Scripture Live Engine  
+> **Maintainer**: PTGSF Tech  
+> **License**: MIT  
+> **Target Software**: Renewed Vision ProPresenter 7+ (v7.12+ OpenAPI on port `1025`)  
+> **Backend Server**: Node.js v20+ / Express.js on port `8080`  
 
 ---
 
 ## 1. Executive Summary & Purpose
 
-The **ProPresenter Web Studio Controller** is a high-performance, responsive web application engineered to operate as a remote broadcast command center for **Renewed Vision ProPresenter 7+**. It interfaces directly with ProPresenter's native OpenAPI HTTP REST and chunked streaming endpoints.
+The **ProPresenter Web Studio Controller** is a broadcast-grade remote command center, bilingual scripture engine, and musician stage confidence monitor engineered specifically for **Renewed Vision ProPresenter 7+**.
 
-The application allows operators, directors, and technical teams to:
-1. Control slide presentations, media layers, stage layouts, timers, audio, props, and macros from any device (Desktop, iPad/Tablet, Smartphone).
-2. Monitor real-time screen outputs (Audience Sony TV, Stage Screen, ATEM switcher).
-3. Synchronize bi-directionally with the desktop software in real time: actions taken on the web trigger in software, and manual actions taken in the ProPresenter software automatically update and focus on the web interface.
+### Dual Core Responsibilities:
+1. **Remote Broadcast Command Center**:
+   - Control slide transport, song presentations, playlists, media bins, stage displays, timers, audio tracks, props, and macros from any device (Desktop, iPad/Tablet, Mobile).
+   - Real-time bi-directional synchronization with ProPresenter desktop software via chunked streaming (`POST /v1/status/updates`) and REST endpoints.
+   - Live multi-screen preview feeds (Audience output and Musician stage displays).
+2. **Dynamic Scripture Live Engine**:
+   - Queries Cloudflare D1 serverless SQLite for multi-version parallel Bible verses (Tamil `TAM`, English `KJV`, etc.).
+   - Provides dynamic RSS 2.0 streaming feeds (`/api/bible/rss/:version`) and 0ms local file links (`C:\ProPresenter Files\Bible_Verse.txt`) that ProPresenter text layers link to directly.
+   - Includes strict content validation to prevent song lyrics or presentation text from ever contaminating Bible feeds.
 
 ---
 
-## 2. Technology Stack & Design Architecture
+## 2. High-Level Architecture & Network Topology
 
-### 2.1 Core Technologies
-* **Backend Core**: Node.js (v20+), Express.js server, CORS middleware, dotenv configuration.
-* **Frontend Core**: Vanilla HTML5, Vanilla JavaScript (ES6+ Classes, async/await, Fetch API, ReadableStream).
-* **Styling & Theming**: Custom Vanilla CSS design system coupled with **Bootstrap 5.3.3** for layout utilities.
-* **ProPresenter 7 Dark Slate Aesthetic**:
-  - Background Canvas: `#0c0d10` (Studio Black)
-  - Surface Background: `#14161c` / `#1c1f26`
-  - Signature Amber Accent: `#ff9f0a` (Active slides, focus badges, primary buttons)
-  - Audience Cyan: `#38bdf8` (Audience displays, playlist badges)
-  - Stage Purple: `#c084fc` (Stage displays, confidence monitors, chord charts)
-  - Success Green: `#10b981` (Connected status, screen active, live stream)
-  - Danger Red: `#ef4444` (Clear all, screen off, disconnect)
-
-### 2.2 Architectural Layers
 ```
-┌────────────────────────────────────────────────────────┐
-│               USER INTERFACE LAYER                     │
-│  Login Page  │  Master Header  │  3-Tier Left Sidebar   │
-│  Show View   │   Bible View    │  Right 6-Tab Drawer   │
-│  Tactical Row│  Stage Monitor  │  Mobile QR Modals     │
-└───────────────────────────▲────────────────────────────┘
-                            │ Pub/Sub Events
-┌───────────────────────────┴────────────────────────────┐
-│              CONTROLLER ORCHESTRATION                  │
-│  PlaylistController    │ PresentationController        │
-│  ScreenMonitorCtrl     │ RightTabsController           │
-│  StageController       │ QuickClearController          │
-└───────────────────────────▲────────────────────────────┘
-                            │ Mutations & State Ingestion
-┌───────────────────────────┴────────────────────────────┐
-│              REACTIVE CENTRAL STATE STORE              │
-│       StateStore (js/state/store.js - Pub/Sub)         │
-└───────────────────────────▲────────────────────────────┘
-              ▲                             ▲
-   REST Data  │                  Push Chunks│
-┌─────────────┴───────────┐   ┌─────────────┴────────────┐
-│       ApiClient         │   │       StreamClient       │
-│   (22 API Domains /     │   │   (Chunk Stream Engine   │
-│    212 Endpoints)       │   │    POST /status/updates) │
-└─────────────▲───────────┘   └─────────────▲────────────┘
-              │                             │
-              └──────────────┬──────────────┘
-                             │ HTTP Port 1025
-              ┌──────────────┴──────────────┐
-              │    ProPresenter 7 Host      │
-              │   (192.168.0.200:1025)      │
-              └─────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          CLIENT LAYER (WEB BROWSERS)                         │
+│   Desktop / iPad / Android Tablets / Stage Pulip Monitors / Mobile Phones    │
+│   ├── Show Mode: Song Cues, Transport, Sets, Bilingual Search, Quick-Clears │
+│   ├── Bible Mode: 1-to-3 Version Comparison Grid, Smart Search, Tray History │
+│   ├── Screen Monitor: Audience (Sony TV) & Stage Output Real-Time Previews  │
+│   └── Stage Monitor: Fullscreen High-Contrast Confidence Display with Chords│
+└───────────────────────▲─────────────────────────────▲───────────────────────┘
+                        │ HTTP (Port 8080)            │ REST / RSS / Local Files
+                        ▼                             ▼
+┌───────────────────────────────────────┐   ┌─────────────────────────────────┐
+│     NODE.JS / EXPRESS.JS SERVER       │   │      CLOUDFLARE D1 (SQLITE)     │
+│             (Port 8080)               │   │      Multi-Version Database     │
+│  ├── Reverse Proxy to ProPresenter    │   │  ├── bible_version (TAM, KJV...)│
+│  ├── Unified Config Loader            │◄──┼──┤ bible_book (66 Books)        │
+│  ├── Cloudflare D1 Bible Engine       │   │  └── bible_verse (Parallel text)│
+│  ├── Dynamic RSS 2.0 Feed Generator   │   └─────────────────────────────────┘
+│  ├── Strict Non-Bible Content Blocker │
+│  └── 0ms Local Text File Writer       │
+└───────────────────▲───────────────────┘
+                    │ REST API (:1025) / Slide Trigger / Chunked Push Stream
+                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 RENEWED VISION PROPRESENTER 7+ DESKTOP                      │
+│                           (192.168.0.200:1025)                              │
+│  ├── Library: Songs, Liturgy, Media, Playlists, Sets                        │
+│  ├── Library: "Resource" -> Presentation: "Bible"                           │
+│  │     └── Slide 1: Linked to dynamic RSS / Local Text File feeds           │
+│  └── Visual Layer Engine: Audience Output (Sony TV) & Stage Outputs (ATEM)  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Configuration & Network Setup
+## 3. Configuration Management (`config.json`)
 
-### 3.1 Configuration Resolution (`js/config.js`)
-Configuration is managed through `AppConfig`:
-- **Default IP**: `"192.168.0.200"`
-- **Default Port**: `"1025"`
-- **Base URL**: Computed dynamically as `http://<IP>:<PORT>`.
-- **Resolution Priority**:
-  1. URL Query Parameters (e.g. `?ip=192.168.0.200&port=1025`)
-  2. Browser `localStorage` (`proPresenterHostIp`, `proPresenterHostPort`)
-  3. Static Defaults (`192.168.0.200:1025`)
+To resolve GitHub push protection and secret scanning rejections caused by committing `.env` files or raw Cloudflare API tokens, configuration is managed through standard JSON configuration files loaded by `src/config.js`.
 
-### 3.2 Authentication & Login-First Workflow
-1. **Entry Point Redirect**: Accessing the root URL (`http://localhost:8080/`) or opening `index.html` immediately redirects to `pages/login.html`.
-2. **Login Page (`pages/login.html`)**:
-   - Host IP & Port input fields with a live **"Test Connection"** feature that checks `GET /version`.
-   - Future authentication fields (**Username** and **Password**) stored in `localStorage` for upcoming credentialed releases.
-   - Upon successful verification, stores `localStorage.setItem('proPresenterConnected', 'true')` and navigates to `pages/index.html`.
-3. **Session Guard (`js/app.js`)**:
-   - Every page load verifies `localStorage.getItem('proPresenterConnected') === 'true'`.
-   - If missing or false, automatically bounces to `login.html` (can be bypassed for testing with `?bypass=true`).
-4. **Disconnect Action**:
-   - Dedicated red power button in the master header prompts confirmation, cleanly aborts streams and background polling intervals, clears session flags, and returns to `login.html`.
+### 3.1 Loading Priority Hierarchy:
+1. `config.local.json` (Local machine overrides containing private church credentials, ignored by git)
+2. `config.json` (Main project configuration tracked by git, contains safe placeholders)
+3. `process.env` (Operating system environment variables)
+4. Built-in defaults
 
----
+### 3.2 Configuration Parameters:
 
-## 4. ProPresenter OpenAPI Endpoints Implemented
+| Key | Default | Description |
+| :--- | :--- | :--- |
+| `PORT` | `8080` | Local Express web server and RSS feed port |
+| `PROPRESENTER_HOST` | `192.168.0.200` | IP address of desktop running ProPresenter 7 |
+| `PROPRESENTER_PORT` | `1025` | ProPresenter OpenAPI port (Preferences -> Network) |
+| `CLOUDFLARE_QUERY_URL`| *(Cloudflare URL)* | Endpoint for Cloudflare D1 SQL query API |
+| `CLOUDFLARE_API_TOKEN`| *(Cloudflare Token)* | Cloudflare API Bearer token for D1 database access |
 
-Below is the complete reference of all native ProPresenter 7 APIs integrated into this controller:
+### 3.3 Safe Version Control Strategy:
+- `config.json`: Tracked in git with placeholder token (`"your_cloudflare_api_token_here"`).
+- `config.local.json`: Local production credentials file, automatically excluded via `.gitignore`.
+- `.gitignore`: Retains ignore rules for `.env` and `config.local.json`.
 
-| API Endpoint | HTTP Method | Implementation Location | Purpose & Usage |
-| :--- | :--- | :--- | :--- |
-| `/version` | `GET` | `ApiClient.getVersion()` | Retrieves host software version, OS version, and server name. |
-| `/v1/status/updates` | `POST` | `StreamClient.connect()` | Multiplexed chunked JSON push stream subscribing to real-time status events. |
-| `/v1/status/screens` | `GET` | `ApiClient.getScreens()` | Retrieves screen topology (Sony TV, Stage Screen, ATEM) and dimensions. |
-| `/v1/status/audience_screens` | `GET` | `ApiClient.getAudienceScreenStatus()` | Reads master power state of Audience displays (`true`/`false`). |
-| `/v1/status/audience_screens` | `POST`/`PUT` | `ApiClient.setAudienceScreenStatus()` | Toggles Audience screens ON/OFF using boolean payload (`true`/`false`). |
-| `/v1/status/stage_screens` | `GET` | `ApiClient.getStageScreenStatus()` | Reads master power state of Stage displays (`true`/`false`). |
-| `/v1/status/stage_screens` | `POST`/`PUT` | `ApiClient.setStageScreenStatus()` | Toggles Stage screens ON/OFF using boolean payload (`true`/`false`). |
-| `/v1/status/layers` | `GET` | `ApiClient.getLayers()` | Requests active status of visual projection layers (`slide`, `media`, `props`, `messages`, `audio`). |
-| `/v1/status/slide` | `GET` | `StreamClient` Subscription | Live stream frame of current vs next slide text and notes. |
-| `/v1/presentation/active` | `GET` | `ApiClient.getActivePresentation()` | Fetches current presentation document with group hierarchy and slide metadata. |
-| `/v1/presentation/slide_index` | `GET` | `ApiClient.getSlideIndex()` | Polled every 1s and streamed; returns `{ presentation_index: { index, presentation_id } }` for live software sync. |
-| `/v1/presentation/{uuid}` | `GET` | `ApiClient.getPresentation(uuid)` | Loads full slide deck for a specific presentation UUID. |
-| `/v1/presentation/{uuid}/focus`| `GET` | `ApiClient.focusPresentation(uuid)` | Selects and opens a document without triggering slides. |
-| `/v1/presentation/{uuid}/{index}/trigger` | `GET`/`POST` | `ApiClient.triggerSlide(uuid, index)` | Fires a specific slide cue into live output. |
-| `/v1/presentation/{uuid}/thumbnail/{index}` | `GET` | `ApiClient.getSlideThumbnailUrl()` | Returns live thumbnail image URL for slide cards (dimension 360px). |
-| `/v1/presentation/{uuid}/chord_chart` | `GET` | `ApiClient.getChordChartUrl()` | Returns live chord chart image for musician viewing (dimension 900px). |
-| `/v1/presentation/active/timeline/play` | `GET` | `ApiClient.timelinePlay()` | Starts presentation timeline playback. |
-| `/v1/presentation/active/timeline/pause` | `GET` | `ApiClient.timelinePause()` | Pauses presentation timeline playback. |
-| `/v1/presentation/active/timeline/rewind` | `GET` | `ApiClient.timelineRewind()` | Rewinds presentation timeline to zero. |
-| `/v1/clear/layer/{layer}` | `GET` | `ApiClient.clearLayer(layer)` | Clears specific layer: `all`, `slide`, `media`, `props`, `messages`, `audio`. |
-| `/v1/libraries` | `GET` | `ApiClient.getLibraries()` | Fetches all song libraries. Polled every 5s for auto-discovery. |
-| `/v1/library/{id}` | `GET` | `ApiClient.getLibrary(id)` | Fetches presentation list inside a chosen library. |
-| `/v1/playlists` | `GET` | `ApiClient.getPlaylists()` | Fetches service orders and playlist folders. |
-| `/v1/playlist/{id}` | `GET` | `ApiClient.getPlaylist(id)` | Fetches items and presentations inside a playlist set. |
-| `/v1/looks` | `GET` | `ApiClient.getLooks()` | Fetches configured Audience Look presets. |
-| `/v1/look/current` | `GET` | `ApiClient.getCurrentLook()` | Reads currently active Audience Look. |
-| `/v1/look/{id}/trigger` | `GET` | `ApiClient.triggerLook(id)` | Activates an Audience Look preset. |
-| `/v1/stage/layouts` | `GET` | `ApiClient.getStageLayouts()` | Retrieves all stage screen layouts. |
-| `/v1/stage/layout/{id}` | `PUT` | `ApiClient.setStageLayout(id)` | Switches stage layout preset. |
-| `/v1/stage/message` | `GET`/`PUT` | `ApiClient.setStageMessage(msg)` | Reads and posts stage alert messages to confidence monitors. |
-| `/v1/stage/message/clear` | `GET` | `ApiClient.clearStageMessage()` | Clears current stage alert message. |
-| `/v1/audio/playlists` | `GET` | `ApiClient.getAudioPlaylists()` | Fetches audio playlist collections. |
-| `/v1/audio/playlist/{id}` | `GET` | `ApiClient.getAudioPlaylist(id)` | Fetches audio tracks inside a playlist. |
-| `/v1/audio/{uuid}/trigger` | `GET` | `ApiClient.triggerAudioItem(uuid)`| Triggers playback of an audio track. |
-| `/v1/timers` | `GET` | `ApiClient.getTimers()` | Fetches configured countdowns and production timers. |
-| `/v1/timer/{id}/start` | `GET` | `ApiClient.startTimer(id)` | Starts a countdown timer. |
-| `/v1/timer/{id}/stop` | `GET` | `ApiClient.stopTimer(id)` | Stops a countdown timer. |
-| `/v1/timer/{id}/reset` | `GET` | `ApiClient.resetTimer(id)` | Resets a countdown timer to initial duration. |
-| `/v1/timer/{id}/increment` | `PUT` | `ApiClient.incrementTimer(id, sec)` | Adjusts timer value (+60s button). |
-| `/v1/props` | `GET` | `ApiClient.getProps()` | Fetches list of overlay graphic props. |
-| `/v1/prop/{id}/trigger` | `GET` | `ApiClient.triggerProp(id)` | Toggles an overlay graphic prop. |
-| `/v1/props/clear` | `GET` | `ApiClient.clearProps()` | Clears all overlay graphic props. |
-| `/v1/macros` | `GET` | `ApiClient.getMacros()` | Fetches configured automation macros. |
-| `/v1/macro/{id}/trigger` | `GET` | `ApiClient.triggerMacro(id)` | Triggers an automation macro. |
-
-### 4.1 Detailed Request & Response Schemas for Core Workflows
-
-#### 1. Software-to-Web Slide Live Sync (`GET /v1/presentation/slide_index`)
-* **Endpoint**: `/v1/presentation/slide_index`
-* **Method**: `GET`
-* **Polling Rate**: Every 1,000 ms (1 second) via `PresentationController.startSlideSyncPolling()`
-* **Sample Response**:
-```json
-{
-  "presentation_index": {
-    "index": 6,
-    "presentation_id": {
-      "uuid": "c65ce713-649d-437e-9795-632b326f28dd",
-      "name": "Naanum En Veetarumovendraal",
-      "index": 0
-    }
-  }
-}
-```
-* **Handling Logic**:
-  1. Inspects `presentation_id.uuid`. If different from `this.currentPresentationUuid`, automatically executes `GET /v1/presentation/{uuid}` to load the presentation cues.
-  2. Identifies the live slide index `presentation_index.index`.
-  3. Updates UI by removing `.active` from previous cards and adding `.active` + amber border + `LIVE` badge to `#slide-card-${index}`.
-  4. Calls `card.scrollIntoView({ behavior: 'smooth', block: 'nearest' })` so operators immediately see the active slide.
-
-#### 2. Audience Screen Power Control (`GET` & `POST /v1/status/audience_screens`)
-* **Read Status**: `GET /v1/status/audience_screens` $\rightarrow$ returns raw boolean `true` or `false`.
-* **Set Status**: `POST /v1/status/audience_screens`
-* **Request Headers**: `Content-Type: application/json`
-* **Request Body**: `true` or `false` (Raw JSON boolean)
-* **Response**: `200 OK` or `204 No Content`
-* **Toggle Sequence**:
-  ```javascript
-  const current = await ApiClient.getAudienceScreenStatus(); // e.g. true
-  const next = !current;                                      // false
-  await ApiClient.setAudienceScreenStatus(next);              // sends false
-  ```
-
-#### 3. Stage Screen Power Control (`GET` & `POST /v1/status/stage_screens`)
-* **Read Status**: `GET /v1/status/stage_screens` $\rightarrow$ returns raw boolean `true` or `false`.
-* **Set Status**: `POST /v1/status/stage_screens` (with `PUT` fallback)
-* **Request Headers**: `Content-Type: application/json`
-* **Request Body**: `true` or `false`
-* **Response**: `200 OK` or `204 No Content`
-
-#### 4. Song Selection: Focus vs Trigger
-* **Focus Song (Library/Playlist click)**:
-  - `GET /v1/presentation/{uuid}/focus`
-  - Loads document into ProPresenter's edit/preview pane without affecting the audience screen.
-* **Trigger Slide (User clicks a slide card)**:
-  - `GET /v1/presentation/{uuid}/{index}/trigger`
-  - Instantly cuts/transitions slide index `{index}` to the live audience output screen.
-
-#### 5. Dynamic Library Auto-Discovery (`GET /v1/libraries`)
-* **Endpoint**: `/v1/libraries`
-* **Method**: `GET`
-* **Polling Rate**: Every 5,000 ms (5 seconds) via `PlaylistController.startLibraryPolling()`
-* **Sample Response**:
-```json
-[
-  {
-    "id": { "uuid": "7a3b...", "name": "Default Songs", "index": 0 },
-    "path": "/ProPresenter/Libraries/Default Songs"
-  },
-  {
-    "id": { "uuid": "9c1d...", "name": "Tamil Worship", "index": 1 },
-    "path": "/ProPresenter/Libraries/Tamil Worship"
-  }
-]
-```
-* **Handling Logic**: Hashes or compares IDs; if new libraries exist, re-renders the list and updates `#librariesCountBadge` seamlessly.
+### 3.4 Client-Side Configuration Resolution (`js/config.js`):
+- Priority 1: URL Query Parameters (`?ip=192.168.0.200&port=1025`)
+- Priority 2: HTML5 `localStorage` (`proPresenterIP`, `proPresenterPort`)
+- Priority 3: Static Defaults (`192.168.0.200:1025`)
 
 ---
 
-## 5. Detailed Breakdown of Completed Functionality
-
-### 5.1 Left Sidebar (2-Tier 75% / 25% Split & Auto-Refresh)
-* **Width**: Fixed at **`320px`** in [css/layout.css](file:///e:/Church%20Projects/Propresenter-Control/css/layout.css).
-* **Tier 1 — Libraries (75% Height)**:
-  - Takes 75% of the sidebar height with internal vertical scroll (`overflow-y: auto`).
-  - Displays all song databases with live counter badge (`#librariesCountBadge`).
-  - **Dynamic 5-Second Polling (`startLibraryPolling`)**: [js/controllers/playlist-ctrl.js](file:///e:/Church%20Projects/Propresenter-Control/js/controllers/playlist-ctrl.js) polls `GET /v1/libraries` every 5 seconds. If a church technician adds a new library in the ProPresenter software, it automatically populates in the list without page reload.
-  - Clicking any library opens the Multi-Mode Song Search Modal in "By Library" mode for instant browsing and triggering.
-* **Tier 2 — Playlists (25% Height)**:
-  - Takes 25% of the sidebar height with internal vertical scroll (`overflow-y: auto`).
-  - Displays all service playlists with count badge (`#playlistsCountBadge`).
-  - Clicking a playlist loads its active presentation set directly into the presenter cues deck.
-* **Streamlined Layout**: The redundant inline search section was removed from the left sidebar, giving full priority to Library browsing (75%) and Playlist sets (25%). Global search is seamlessly accessed via the master header search button or `Ctrl+K` / `Cmd+K`.
-
----
-
-### 5.2 Header Mode Switcher: "Show" vs "Bible"
-* **Header Segmented Control**: Pinned in the master header (`pages/index.html`):
-  - **"Show" Button**: Activates slide deck view (`#cuesSectionWrapper`).
-  - **"Bible" Button**: Activates scripture feed view (`#middleRow3Bible`).
-* **Strict Mutual Exclusivity**:
-  - The switching function in [js/app.js](file:///e:/Church%20Projects/Propresenter-Control/js/app.js) (`setWorkspaceView()`) applies `display: flex !important;` to the selected section and `display: none !important;` + `.d-none` + `.workspace-view-hidden` to the inactive section, ensuring zero layout overlap or conflict.
-* **Persistence**: Remembers active view in `localStorage.getItem('proPresenterWorkspaceView')`.
-
----
-
-### 5.3 Middle Column: Tactical Bar & Dynamic Viewport Height
-* **Row 1 (Tactical Operations Bar)**:
-  - **Tactile Clears**: 6 tactile buttons (`Clear All`, `Slide`, `Media`, `Props`, `Msg`, `Audio`).
-  - **Audience & Stage Screen Toggles**:
-    - When clicked, calls `GET /v1/status/audience_screens` (or `stage_screens`), inverts boolean state (`true` $\rightarrow$ `false`, `false` $\rightarrow$ `true`), and sends updated state to `POST /v1/status/audience_screens` (or `stage_screens`).
-  - **System Clock**: Real-time ticker showing current 12-hour time and service day.
-* **Screen-Based Fixed Heights**:
-  Both middle views are calculated from viewport height in [css/layout.css](file:///e:/Church%20Projects/Propresenter-Control/css/layout.css):
-  ```css
-  height: calc(100vh - 175px);
-  max-height: calc(100vh - 175px);
-  min-height: 380px;
-  ```
-  - **1080p Desktop (1920×1080)**: Fixed at **`905px`**.
-  - **900p Display (1600×900)**: Fixed at **`725px`**.
-  - **768p Laptop (1366×768)**: Fixed at **`593px`**.
-  - The middle workspace never produces an outer page scrollbar; all scrolling is internal.
-
----
-
-### 5.4 Presentation Section ("Show" Mode)
-* **Slide Grid (`.slides-grid-container`)**:
-  - Occupies all remaining height with internal vertical scrolling (`overflow-y: auto;`).
-  - Slide cards display group color dots (Verse, Chorus, Bridge, Tag), slide labels, and thumbnails loaded asynchronously via `/v1/presentation/{uuid}/thumbnail/{index}`.
-* **Untitled Presentation Guard**:
-  - Automatically filters out placeholder documents ("Untitled Presentation", "Untitled", "Untitled Document") to keep the presentation area clean.
-* **Bi-Directional Slide Synchronization**:
-  - **Web $\rightarrow$ Software**: Clicking a slide card triggers `GET /v1/presentation/{uuid}/{index}/trigger` and highlights the slide as LIVE.
-  - **Software $\rightarrow$ Web**: [js/controllers/presentation-ctrl.js](file:///e:/Church%20Projects/Propresenter-Control/js/controllers/presentation-ctrl.js) polls `GET /v1/presentation/slide_index` every **1 second**:
-    1. Intercepts `{ presentation_index: { index, presentation_id } }`.
-    2. If the presentation changed in software, automatically fetches and loads the new document.
-    3. Finds `#slide-card-${index}` and adds `.active` (amber glow + `LIVE` pill badge).
-    4. Smoothly scrolls the card into view inside the fixed container:
-       ```javascript
-       targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-       ```
-
----
-
-### 5.5 Bible Presenter Section ("Bible" Mode)
-* **Cloudflare D1 Backend Integration**:
-  - Connects to Cloudflare D1 via [src/services/bible-service.js](file:///e:/Church%20Projects/Propresenter-Control/src/services/bible-service.js) using parameterized SQL queries.
-  - Houses 31,102 Tamil Bible verses (`TAM`) and English (`KJV`).
-* **Structured & Free Search**:
-  - **Version Selectors**: Multi-version comparison supporting up to 3 simultaneous versions (`Version 1: TAM`, `Version 2: KJV`, `Version 3`).
-  - **Book Dropdown**: All 66 books grouped by Old Testament and New Testament with bilingual titles.
-  - **Chapter & Verse**: Numeric inputs with stepper buttons (`<` and `>`).
-  - **Common / Free Search**: Automatically detects reference formats (`John 3:16`, `யோவான் 3:16`, `சங்கீதம் 23:1`) or searches across Bible text keywords with Unicode Tamil support.
-* **Dynamic Parallel Comparison Table (`#bibleVersesTable`)**:
-  - Auto-adjusts column layout based on selected versions:
-    - 1 Version $\rightarrow$ Full width (100%)
-    - 2 Versions $\rightarrow$ Split 50% / 50%
-    - 3 Versions $\rightarrow$ Split 33.3% / 33.3% / 33.3%
-  - Each row presents verse number pill, synchronized text across versions, and **Present Live** button.
-  - Clicking any row highlights it as LIVE across all columns with studio amber glow.
-* **ProPresenter RSS 2.0 Feed Engine**:
-  - Generates standards-compliant XML feeds (`application/rss+xml; charset=utf-8`):
-    - `GET /api/bible/rss?type=verse&version=TAM&book=GEN&chapter=1&verse=2`
-    - `GET /api/bible/rss?type=reference&version=TAM&book=GEN&chapter=1&verse=2`
-    - `GET /exec`: Drop-in compatibility with Google Apps Script RSS parameters.
-    - `GET /api/bible/rss/live?type=verse&version=TAM`: Real-time dynamic feed that auto-updates whenever the operator clicks "Present" on any verse.
-  - Dedicated **ProPresenter RSS Modal** with 1-click copy buttons for instant setup.
-
----
-
-### 5.6 Right Sidebar (Screen Selector + 6 Feature Tabs)
-* **Width**: Fixed at **`390px`** in [css/layout.css](file:///e:/Church%20Projects/Propresenter-Control/css/layout.css).
-* **Screen Output Dropdown**:
-  - Selects `Sony TV (Audience)`, `Stage Screen (Stage)`, or `ATEM (Stage)`.
-  - Shows single dedicated live preview container.
-* **6 Lazy-Loaded Feature Tabs** in [js/controllers/right-tabs-ctrl.js](file:///e:/Church%20Projects/Propresenter-Control/js/controllers/right-tabs-ctrl.js):
-  1. **Audio**: Audio playlist browser with play triggers.
-  2. **Stage**: Stage screens list, layout selector dropdown, stage message composer, chord chart modal (`/chord_chart`).
-  3. **Timer**: Video countdown bar, system clock, and timer controls (+1m, start, stop, reset).
-  4. **Message**: Stage alert messages.
-  5. **Props**: Overlay graphic props with Clear All.
-  6. **Macros**: Automation macro trigger pad.
-
----
-
-### 5.7 Stage Confidence Monitor Page (`pages/stageMonitor.html`)
-* Full-screen confidence monitor designed for musician iPads and pulpit TV screens.
-* Subscribes to `/v1/status/slide` and `/v1/stage/message` to display current vs next slide text and alert messages in high-contrast typography.
-* Built-in mobile QR code modal in master header allows musicians to scan with their phones to instantly open the monitor.
-
----
-
-### 5.8 Modal-Based Multi-Mode Song Search Component
-* **Global Shortcut & Header Button**:
-  - Activated by clicking the header search button or pressing `Ctrl+K` / `Cmd+K` anywhere in the app.
-  - Can be dismissed via `Escape`, clicking the backdrop, or clicking the close button (`×`).
-* **In-Memory Indexing & Concurrency Control**:
-  - Fetches `/v1/libraries` and chunks library item retrieval in controlled batches of **8** (`batchSize: 8`) via `GET /v1/library/{id}` to prevent server bottlenecks.
-  - Flattens all presentations into an in-memory index with `.normalize('NFC')` for accurate multi-lingual character comparisons (Tamil, Hindi, English).
-  - Splits bilingual titles on delimiters (`-`, `–`, `—`, `|`, `/`, and parentheses) into independent language `segments`.
-  - Extracts and categorizes `author`/worship artist metadata, maintaining a distinct artist list with counts, initials, and gradient colors.
-* **Three Search Modes**:
-  1. **Mode 1: Free Search**: Simultaneous search across all libraries using strict priority sorting.
-  2. **Mode 2: By Library**: Filter searches within a user-selected library from a dropdown populated via `/v1/libraries`.
-  3. **Mode 3: By Author / Artist**: Interactive horizontal avatar carousel displaying artist bubbles with initials and song counts. Selecting an artist restricts the song search and card grid to that artist.
-* **5-Tier Strict Priority Matching**:
-  - **Priority 1 (Exact Match)**: Query strictly equals full title or any segmented title.
-  - **Priority 2 (Starts With)**: Full title or any segmented title starts with query.
-  - **Priority 3 (Ends With)**: Full title or any segmented title ends with query.
-  - **Priority 4 (Contains)**: Query is contained anywhere within title or any segment.
-  - **Priority 5 (Fuzzy Fallback via Fuse.js)**: If fewer than the requested result limit are found, runs `Fuse.js` (`threshold: 0.35`, `ignoreLocation: true`, `minMatchCharLength: 2`) excluding items already gathered in Tiers 1–4.
-* **Responsive Card Grid Layout**:
-  - Grid: `repeat(auto-fill, minmax(260px, 1fr))`.
-  - Displays primary title, secondary bilingual subtitle, library tag, author tag, and trigger button.
-* **Live Trigger on Select**:
-  - Clicking any song card triggers ProPresenter using its UUID via `GET /v1/presentation/{uuid}/trigger` (with fallback to `GET /v1/presentation/{uuid}/0/trigger`).
-  - Displays a live confirmation toast and closes the modal cleanly.
-* **UI & State Management**:
-  - Input debounced by **120ms**.
-  - Active filter pill badge with remove (`×`) button when library or author filter is engaged.
-
----
-
-## 6. Directory Structure & Key Files
+## 4. Complete Repository File Structure & Module Index
 
 ```
 Propresenter-Control/
-├── package.json                 # Node.js project manifest & scripts (npm start, npm run dev)
-├── server.js                    # Production Express web server & CORS reverse proxy
-├── .env                         # Local network & host environment configuration
-├── .env.example                 # Configuration template for deployment
-├── index.html                   # Root entry point (redirects to pages/login.html)
-├── PROJECT_SUMMARY.md           # This comprehensive summary and handover guide
-├── CODE_DOCUMENTATION.md        # Deep-dive architecture and OpenAPI technical manual
-├── README.md                    # Quick-start runbook for church operators
+├── config.json                  # Main JSON configuration (safe placeholders, tracked in git)
+├── config.local.json            # Local private credentials override (Git ignored)
+├── server.js                    # Express.js server, RSS feeds, reverse proxy, network discovery
+├── allow-firewall-8080.bat      # 1-Click batch script to open Windows Firewall for port 8080
+├── package.json                 # Project manifest, dependencies, and npm scripts
+├── README.md                    # Primary human documentation and volunteer setup guide
+├── PROJECT_SUMMARY.md           # Machine & AI agent context document (this file)
+├── LICENSE                      # MIT Open-Source License
+├── index.html                   # Root entry router (redirects to /pages/login.html or /pages/index.html)
+│
+├── src/
+│   ├── config.js                # Centralized configuration loader (Properties / JSON / env)
+│   ├── background-image.png     # Application presentation asset
+│   ├── Propresenter.jpg         # Application logo asset
+│   └── services/
+│       └── bible-service.js     # Cloudflare D1 SQL engine, alias resolver & RSS 2.0 generator
 │
 ├── pages/
-│   ├── index.html               # Main Web Studio Controller interface
-│   ├── login.html               # Connection settings and authentication
-│   └── stageMonitor.html        # High-contrast Stage Confidence Monitor
+│   ├── index.html               # Main Web Studio Controller workspace (Show & Bible deck)
+│   ├── login.html               # Connection settings, ProPresenter /version test & session validator
+│   └── stageMonitor.html        # High-contrast fullscreen Musician Stage Confidence Monitor
 │
 ├── css/
-│   ├── theme.css                # ProPresenter dark slate tokens & base resets
-│   ├── layout.css               # 320px & 390px sidebars, screen-based fixed heights, grid
-│   ├── components.css           # Cues, tactile buttons, view switchers, custom scrollbars
-│   ├── song-search.css          # Multi-mode search modal, avatar tray, card grid
-│   └── login.css                # Glassmorphic login styling
+│   ├── theme.css                # ProPresenter 7 Dark Slate design tokens and CSS custom properties
+│   ├── layout.css               # Fixed-height desktop, tablet & mobile responsive grid systems
+│   ├── components.css           # Slide cue cards, buttons, modals, badges, history tray
+│   ├── bible.css                # Scripture 1-3 version parallel grid, badges, search bar
+│   ├── song-search.css          # Bilingual fuzzy search modal, avatar carousel, priority chips
+│   └── login.css                # Connection settings page styling
 │
-├── js/
-│   ├── config.js                # AppConfig: LocalStorage and URL parameter manager
-│   ├── login.js                 # Login connection test & validator
-│   ├── app.js                   # Application coordinator, screen toggles, view switcher
-│   │
-│   ├── api/
-│   │   ├── api-client.js        # ApiClient: Full REST wrapper for all 22 API domains
-│   │   └── stream-client.js     # StreamClient: Multiplexed chunk stream reader
-│   │
-│   ├── state/
-│   │   └── store.js             # StateStore: Reactive centralized Pub/Sub store
-│   │
-│   └── controllers/
-│       ├── song-search-ctrl.js  # ProSongSearchController: Multi-mode search, Fuse.js, trigger
-│       ├── screen-monitor.js    # Screen preview monitor and dropdown controller
-│       ├── presentation-ctrl.js # Slide cues grid, 1s software sync, thumbnail loader
-│       ├── playlist-ctrl.js     # 2-tier 75/25 sidebar navigator, 5s library auto-polling
-│       ├── right-tabs-ctrl.js   # 6 interactive feature tabs controller
-│       ├── stage-ctrl.js        # Stage layout & message controller
-│       ├── quick-clear-ctrl.js  # Tactical clear layer controller
-│       ├── media-ctrl.js        # Background loops & motion graphics controller
-│       └── timer-ctrl.js        # Video countdown & production clocks controller
+└── js/
+    ├── app.js                   # Application coordinator, session guard, mode router, shortcuts
+    ├── config.js                # Browser AppConfig (LocalStorage & query parameters)
+    ├── login.js                 # Login connection tester & session guard
+    │
+    ├── api/
+    │   ├── api-client.js        # REST client implementing 22 ProPresenter OpenAPI categories
+    │   └── stream-client.js     # Persistent chunked stream engine on POST /v1/status/updates
+    │
+    ├── state/
+    │   └── store.js             # Reactive central Pub/Sub StateStore
+    │
+    └── controllers/
+        ├── playlist-ctrl.js     # 2-Tier 75/25 sidebar (Libraries with 5s polling + Playlists/Sets)
+        ├── presentation-ctrl.js # Active presentation slide cues grid, thumbnails & transport
+        ├── bible-ctrl.js        # Bible comparison engine, dual-path live push, auto-trigger lifecycle
+        ├── song-search-ctrl.js  # In-memory bilingual fuzzy search modal with Fuse.js fallback
+        ├── screen-monitor.js    # Multi-screen live output monitor (Audience Sony TV & Stage ATEM)
+        ├── stage-ctrl.js        # Stage layouts, musician alert messages & chord charts
+        ├── quick-clear-ctrl.js  # Layer clears (All, Slide, Media, Props, Audio), Looks, Macros
+        ├── media-ctrl.js        # Background video loop bin
+        ├── timer-ctrl.js        # Production countdown clocks & video timers
+        └── right-tabs-ctrl.js   # 6-tab right utility drawer coordinator
 ```
 
 ---
 
-## 7. How to Run & Verify
+## 5. Core Data Flows & Execution Lifecycles
 
-### 7.1 Running via Node.js / NPM
+### 5.1 Presentation Transport Workflow (Show Mode)
+```
+User clicks cue / presses Space
+       │
+       ▼
+presentation-ctrl.js -> ApiClient.triggerSlide(uuid, index)
+       │
+       ▼
+HTTP GET /v1/presentation/{uuid}/{index}/trigger -> ProPresenter 7
+       │
+       ▼
+ProPresenter triggers slide -> Emits push event on POST /v1/status/updates
+       │
+       ▼
+stream-client.js parses chunk -> store.setState({ activeSlideIndex: index })
+       │
+       ▼
+store emits "presentation:slide_index" -> presentation-ctrl.js updates UI glow & auto-scrolls
+```
 
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+### 5.2 Scripture Presentation Workflow (Bible Mode)
+```
+Operator clicks verse row in UI
+       │
+       ├──────────────────────────────────────────────┐
+       ▼                                              ▼
+POST /api/bible/live (Express Server)       ApiClient.triggerSlide(bibleUuid, 0)
+       │                                              │
+       ├─────────────────────────┐                    ▼
+       ▼                         ▼          ProPresenter triggers Slide 1
+Updates in-memory verse   Writes local files:         │
+       │                  - C:\ProPresenter Files\    │
+       ▼                    Bible_Verse.txt           │ (Wait 75ms)
+Serves updated dynamic    - C:\ProPresenter Files\    ▼
+RSS 2.0 Feeds               Bible_Reference.txt     Micro-pulse re-trigger
+/api/bible/rss/TAM?type=verse                       /v1/presentation/active/trigger
+       │                                              │
+       └───────────────────────┬──────────────────────┘
+                               ▼
+        ProPresenter Slide 1 repaints text layers immediately!
+```
 
-2. **Start the Production Server**:
-   ```bash
-   npm start
-   ```
+### 5.3 Bible Polling Lifecycle
+- **Entering Bible Mode (`bibleCtrl.onEnterBibleView`)**:
+  1. Switches UI container from `#presentationWorkspace` to `#bibleWorkspace`.
+  2. Discovers the Bible presentation UUID in the "Resource" library.
+  3. Fires Slide 1 (index 0) of the Bible presentation.
+  4. Starts an active 1-second interval (`1000ms`) polling `/v1/presentation/slide_index` to monitor if an operator manually changed slides.
+- **Leaving Bible Mode (`bibleCtrl.onLeaveBibleView`)**:
+  1. Immediately clears the 1-second polling interval.
+  2. Restores normal song presentation transport listeners.
 
-3. **Development Mode (Auto-reload on file edits)**:
-   ```bash
-   npm run dev
-   ```
-
-### 7.2 Access URLs
-* **Web Studio Controller**: `http://localhost:8080/pages/index.html?bypass=true` (or `/controller`).
-* **Standard Login Flow**: `http://localhost:8080/` (or `/login`).
-* **Stage Confidence Monitor**: `http://localhost:8080/stage` (or `/pages/stageMonitor.html`).
-* **Server Health Check**: `http://localhost:8080/api/health`.
-* **Server Config Endpoint**: `http://localhost:8080/api/config`.
-* **Bible Scripture API**:
-  - Parallel Verses: `GET /api/bible/verses?versions=TAM,KJV&book=GEN&chapter=1&verse=1`
-  - Flexible Search: `GET /api/bible/search?q=Gen1:1&versions=TAM,KJV`
-  - Live Dynamic RSS: `GET /api/bible/rss/live?type=verse&version=TAM`
-  - Live State Sync: `POST /api/bible/live`
-* **ProPresenter Native Swagger Docs**: `http://192.168.0.200:1025/v1/doc/index.html`.
+### 5.4 Strict Content Barrier (Non-Bible Blocker)
+- In `server.js` and `bible-service.js`, `POST /api/bible/live` strictly verifies that submitted text matches one of the 66 canonical Bible books (`hasBibleBook && hasVerseText && hasValidNumbers`).
+- Any song lyric, sermon slide, or custom presentation text sent to this endpoint is rejected with **HTTP 400 Bad Request**.
+- Clearing the Bible display outputs blank XML tags (`<title></title>`) to cleanly clear ProPresenter screens without leaving residual text.
 
 ---
 
-## 8. Bible Scripture & Dynamic Comparison Engine (Completed)
+## 6. ProPresenter 7 Native OpenAPI Integration
 
-1. **Header & Live Display Indicator**:
-   - Pinned title **"Bible Scripture"** with no Cloudflare badge.
-   - Continuous glowing & pulsing live broadcast badge (`.bible-live-badge`) with synchronized blinking dot (`.live-dot`).
-2. **Database-Backed Flexible Reference Search**:
-   - Powered by Cloudflare D1 `book_alias` table joined with `book_details`, `bible_book`, and `bible_verse`.
-   - Ultra-flexible multi-lingual format parser accepting:
-     - `Gen 1 1`, `Gensis 1 1`, `Gen1 1`, `Gen1:1`, `Genesis 1:1`
-     - `1Cor 13 4`, `1Cor13:4`, `1 Cor 13 4`, `1 கொரி 13 4`
-     - `1சாமு 2 3`, `1சாமு2:3`, `1 Sam 2 3`
-     - `யோவா 3 16`, `யோவான் 3:16`, `யோவான் 3`
-     - `Gen 1`, `Gen1` (Chapter-only navigation)
-   - Auto-triggers live broadcast and scrolls into view when a specific verse reference is queried.
-3. **Interactive Verse History Section**:
-   - Automatically tracks every clicked / presented scripture.
-   - Deduplicates and persists history to `localStorage.getItem('proPresenterBibleVerseHistory')`.
-   - Renders interactive history pills with reference, version badge, and 1-click re-presentation.
-   - Includes individual remove (`×`) and bulk "Clear" actions.
-4. **Keyboard Shortcut**:
-   - `Ctrl+B` (and `Cmd+B`): Instantly activates Bible view and focuses the scripture search input.
-   - `/` (Forward slash): Quick focus on Bible search when in Bible workspace.
-5. **3 Sets of ProPresenter RSS 2.0 Feeds per Version**:
-   - **Full Verse Feed** (`/api/bible/rss/:version`): Reference citation in `<title>`, Scripture text in `<description>` (All-in-one template).
-   - **Verse Text Only Feed** (`/api/bible/rss/:version?type=verse`): Scripture text directly in `<title>` (Ideal for ProPresenter Main Screen slide text layers).
-   - **Reference Citation Only Feed** (`/api/bible/rss/:version?type=reference`): Reference citation in `<title>` (Ideal for ProPresenter citation badges / subtitles).
-   - Dynamic real-time broadcast: Feeds update immediately whenever any scripture verse is clicked or presented in the controller.
-6. **ProPresenter RSS Feeds Hub Section**:
-   - Pinned in-page hub (`#bibleRssHubSection`) toggleable via **"ProPresenter RSS URLs"** button in header toolbar.
-   - Dynamic version switching (e.g. Tamil `TAM` and English `KJV`).
-   - Network Host selector (Church LAN IP `192.168.0.200:8080` vs `localhost:8080`).
-   - One-click URL copy buttons with instant visual feedback and direct browser test links.
+ProPresenter 7 exposes an HTTP OpenAPI server running on port `1025` by default.
 
+### Key API Invariants:
+1. **0-Indexed Slides**: Slide 1 is index `0`, Slide 2 is index `1`, etc.
+2. **Case-Insensitive Library & Document Discovery**: ProPresenter library names (`Resource`) and document names (`Bible`) must be matched case-insensitively using `.toLowerCase()`.
+3. **Single Multiplexed Stream**: Browsers limit HTTP connections per origin to 6. ProPresenter's multiple streaming endpoints (`/status/updates`, `/status/slide`, `/status/screens`) can exhaust sockets. `stream-client.js` maintains a **single** multiplexed persistent connection on `POST /v1/status/updates`.
+4. **Micro-Pulse Repaint**: After triggering a slide whose text is linked to RSS or local files, ProPresenter occasionally takes seconds to repaint. Sending a lightweight trigger pulse to `/v1/presentation/active/trigger` after `75ms` forces an immediate GPU layer repaint.
+
+### OpenAPI Category Reference:
+
+| Category | Key Endpoints | Client Implementation |
+| :--- | :--- | :--- |
+| **System** | `GET /version` | `ApiClient.getVersion()` |
+| **Streaming** | `POST /v1/status/updates` | `StreamClient.connect()` |
+| **Screens** | `GET /v1/status/screens`, `GET /v1/status/audience_screens` | `ApiClient.getScreens()`, `ApiClient.setAudienceScreenStatus()` |
+| **Layers** | `GET /v1/status/layers`, `GET /v1/clear/layer/{layer}` | `ApiClient.getLayers()`, `ApiClient.clearLayer()` |
+| **Presentations** | `GET /v1/presentation/active`, `GET /v1/presentation/{uuid}` | `ApiClient.getActivePresentation()`, `ApiClient.getPresentation()` |
+| **Triggering** | `GET /v1/presentation/{uuid}/{index}/trigger` | `ApiClient.triggerSlide(uuid, index)` |
+| **Thumbnails** | `GET /v1/presentation/{uuid}/thumbnail/{index}?quality=360` | `ApiClient.getSlideThumbnailUrl()` |
+| **Libraries** | `GET /v1/libraries`, `GET /v1/library/{id}` | `ApiClient.getLibraries()`, `ApiClient.getLibrary()` |
+| **Playlists** | `GET /v1/playlists`, `GET /v1/playlist/{id}` | `ApiClient.getPlaylists()`, `ApiClient.getPlaylist()` |
+| **Stage** | `GET /v1/stage/layouts`, `PUT /v1/stage/layout/{id}`, `/v1/stage/message` | `ApiClient.getStageLayouts()`, `ApiClient.setStageMessage()` |
+| **Timers** | `GET /v1/timers`, `GET /v1/timer/{id}/start`, `/stop`, `/reset` | `ApiClient.getTimers()`, `ApiClient.startTimer()` |
+| **Audio** | `GET /v1/audio/playlists`, `GET /v1/audio/{uuid}/trigger` | `ApiClient.getAudioPlaylists()`, `ApiClient.triggerAudioItem()` |
+| **Looks** | `GET /v1/looks`, `GET /v1/look/{id}/trigger` | `ApiClient.getLooks()`, `ApiClient.triggerLook()` |
+| **Macros** | `GET /v1/macros`, `GET /v1/macro/{id}/trigger` | `ApiClient.getMacros()`, `ApiClient.triggerMacro()` |
+
+---
+
+## 7. Backend REST API & Dynamic RSS 2.0 Feeds
+
+### 7.1 Server Endpoints (Port 8080)
+
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Redirects to `/pages/login.html` |
+| `GET` | `/controller` | Serves main workspace (`/pages/index.html?bypass=true`) |
+| `GET` | `/stage` | Fullscreen Musician Stage Confidence Monitor (`/pages/stageMonitor.html`) |
+| `GET` | `/api/health` | Health status and uptime |
+| `GET` | `/api/config` | Returns target ProPresenter host IP, port, and baseURL |
+| `GET` | `/api/bible/versions` | Returns available translations from Cloudflare D1 (`TAM`, `KJV`...) |
+| `GET` | `/api/bible/books?version=TAM` | Lists 66 canonical books with bilingual aliases |
+| `GET` | `/api/bible/verses` | Fetches parallel verses (`?versions=TAM,KJV&book=JHN&chapter=3`) |
+| `GET` | `/api/bible/search?q=...` | Smart reference or full-text keyword search across Cloudflare D1 |
+| `POST`| `/api/bible/live` | Sets current live scripture for RSS & local files (Blocks non-Bible content) |
+| `GET` | `/api/bible/live` | Retrieves currently active presented verse |
+| `GET` | `/api/bible/rss-info` | Metadata helper providing LAN IP addresses for 1-click ProPresenter RSS setup |
+| `ALL` | `/api/proxy/*` | CORS reverse proxy routing `/api/proxy/*` directly to ProPresenter on port 1025 |
+
+### 7.2 Dynamic RSS 2.0 Feeds
+
+| Feed URL | Description | Title Element | Description Element |
+| :--- | :--- | :--- | :--- |
+| `/api/bible/rss/:version` | Full Verse Feed | Reference (e.g. `யோவான் 3:16`) | Scripture text |
+| `/api/bible/rss/:version?type=verse` | Verse Text Only Feed | Scripture text only | Blank |
+| `/api/bible/rss/:version?type=reference` | Reference Citation Feed | Reference citation only | Blank |
+| `/exec` | Google Apps Script Drop-in | Compatible with existing Google Sheets / GAS feeds | Dynamic |
+
+---
+
+## 8. AI Agent Invariants & Maintenance Rules
+
+When editing, refactoring, or extending this repository, AI agents MUST respect the following invariants:
+
+1. **Do NOT Break Slide 0-Indexing**:
+   - Always remember ProPresenter OpenAPI slide indices start at `0`. Never convert to 1-based indexing when making API calls.
+2. **Never Mix Songs and Bible Content**:
+   - The RSS feed and `C:\ProPresenter Files\Bible_Verse.txt` MUST remain pure Scripture. Do not allow song lyrics to be routed to `/api/bible/live`.
+3. **Preserve Configuration Fallbacks**:
+   - In `src/config.js`, preserve loading priority: `config.json` -> `config.properties` -> `.env` -> `process.env`.
+   - Never commit private Cloudflare tokens or plain passwords to public repositories.
+4. **Maintain Reactive Central State**:
+   - UI components must communicate through `store.subscribe('event', handler)` and `store.setState({ key: val })` rather than tightly-coupled cross-controller method invocations.
+5. **Honor Viewport Geometry**:
+   - The UI middle workspace uses fixed screen heights (`calc(100vh - 175px)`). Do not introduce outer body scrollbars; scrollable overflow belongs exclusively inside internal cue containers (`#presentationSlideCues`, `#bibleVersesContainer`).
+6. **Bypass Flag for Direct Testing**:
+   - The session guard redirects to `login.html` if `localStorage.getItem('proPresenterConnected') !== 'true'`. Appending `?bypass=true` to URLs bypasses the check for testing and direct browser bookmarks.
+
+---
+
+## 9. Developer Runbook & Common Commands
+
+```powershell
+# Install Node dependencies
+npm install
+
+# Start production server (Port 8080)
+npm start
+
+# Start development server with auto-reload
+npm run dev
+
+# Open Windows Firewall for mobile and iPad access (Run as Administrator)
+.\allow-firewall-8080.bat
+
+# If Port 8080 is blocked by an orphaned Node process:
+Get-Process node | Stop-Process -Force
+```
 

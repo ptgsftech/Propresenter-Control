@@ -22,7 +22,7 @@ class PlaylistController {
     // Modal & Catalog DOM References
     this.modalEl = document.getElementById('libraryPlaylistModal');
     this.bsModal = null;
-    this.openBtn = document.getElementById('headerLibraryBtn');
+    this.openBtn = document.getElementById('sidebarLibraryBtn') || document.getElementById('headerLibraryBtn');
     this.tabLibrary = document.getElementById('catalogTabLibrary');
     this.tabPlaylist = document.getElementById('catalogTabPlaylist');
     this.libCountBadge = document.getElementById('catalogLibCount');
@@ -99,6 +99,7 @@ class PlaylistController {
     if (this.openBtn) {
       this.openBtn.addEventListener('click', () => this.openModal());
     }
+    document.getElementById('mobileNavLibraryBtn')?.addEventListener('click', () => this.openModal());
 
     // Tab Switcher (Library | Playlist)
     if (this.tabLibrary) {
@@ -226,15 +227,17 @@ class PlaylistController {
   }
 
   /**
-   * Starts periodic polling of the libraries API (/v1/libraries) every 5 seconds.
+   * Starts periodic polling of libraries only while the catalog modal dialog is visible.
    */
   startLibraryPolling() {
     if (this.libraryPollInterval) {
       clearInterval(this.libraryPollInterval);
     }
     this.libraryPollInterval = setInterval(() => {
-      this.refreshLibraries();
-    }, 5000);
+      if (this.modalEl && this.modalEl.classList.contains('show')) {
+        this.refreshLibraries();
+      }
+    }, 10000);
   }
 
   /**

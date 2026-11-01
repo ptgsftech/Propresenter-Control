@@ -151,11 +151,18 @@ class StateStore {
    * unsubscribe();
    */
   subscribe(event, callback) {
+    if (typeof event === 'function') {
+      callback = event;
+      event = '*';
+    }
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event).add(callback);
-    return () => this.listeners.get(event).delete(callback);
+    return () => {
+      const set = this.listeners.get(event);
+      if (set) set.delete(callback);
+    };
   }
 
   /**
@@ -200,6 +207,17 @@ class StateStore {
         this.state[key] = value;
         hasChanges = true;
         this.emit(`change:${key}`, value);
+
+        // Dispatch domain-specific events for screen and presentation status
+        if (key === 'audienceScreensEnabled') {
+          this.emit('screen:audience', value);
+        } else if (key === 'stageScreensEnabled') {
+          this.emit('screen:stage', value);
+        } else if (key === 'screens') {
+          this.emit('screens:updated', value);
+        } else if (key === 'currentSlideIndex') {
+          this.emit('presentation:slide_index', { index: value });
+        }
       }
     }
     if (hasChanges) {

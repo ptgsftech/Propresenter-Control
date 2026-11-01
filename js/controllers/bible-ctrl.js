@@ -9,7 +9,12 @@
  */
 
 class BibleController {
-  constructor() {
+  constructor(apiClient, store) {
+    this.api = apiClient || window.apiClient;
+    this.store = store || window.store;
+    this.biblePresentationUuid = 'cf32ba94-2b67-4571-8c58-52c6953d987d';
+    this.bibleSlidePollInterval = null;
+
     this.selectedVersions = ['TAM'];
     this.availableVersions = [];
     this.books = [];
@@ -386,15 +391,193 @@ class BibleController {
       this.renderRssCards();
     }
 
-    // Sync live state to Node.js backend for the dynamic live RSS feed
-    try {
-      await fetch('/api/bible/live', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(liveData)
-      });
-    } catch (err) {
+    // Concurrently sync live state to Node backend and trigger ProPresenter slide in parallel
+    // This removes sequential network roundtrip delay over Wi-Fi
+    const postPromise = fetch('/api/bible/live', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(liveData)
+    }).catch(err => {
       console.warn('[BibleCtrl] Live state sync warning:', err);
+    });
+
+    const triggerPromise = this.triggerBibleSlide().catch(err => {
+      console.warn('[BibleCtrl] Failed to trigger Bible slide in ProPresenter:', err);
+    });
+
+    await Promise.allSettled([postPromise, triggerPromise]);
+  }
+
+  /**
+   * Resolves the UUID of the "Bible" presentation located in the "Resource" library.
+   * Auto-discovers from ProPresenter libraries API, falling back to cached UUID.
+   * @returns {Promise<string>}
+   */
+  async getBiblePresentationUuid() {
+    if (this.biblePresentationUuid) return this.biblePresentationUuid;
+
+    try {
+      if (!this.api) return 'cf32ba94-2b67-4571-8c58-52c6953d987d';
+      const libraries = await this.api.getLibraries().catch(() => []);
+      const resourceLib = (libraries || []).find(l => l.name && l.name.toLowerCase() === 'resource');
+      if (resourceLib) {
+        const resData = await this.api.getLibrary(resourceLib.uuid).catch(() => null);
+        const bibleItem = (resData && resData.items || []).find(i => i.name && i.name.toLowerCase() === 'bible');
+        if (bibleItem) {
+          this.biblePresentationUuid = bibleItem.uuid;
+          return this.biblePresentationUuid;
+        }
+      }
+    } catch (e) {
+      console.warn('[BibleCtrl] Error discovering Bible presentation UUID:', e);
+    }
+    return 'cf32ba94-2b67-4571-8c58-52c6953d987d';
+  }
+
+  /**
+   * Called automatically when the Bible Option in UI is selected.
+   * Automatically triggers Bible file Slide 1 (index 0) in ProPresenter and starts 1-second slide polling.
+   */
+  async onEnterBibleView() {
+    console.log('[BibleCtrl] Entered Bible Option in UI -> Automatically triggering Bible slide 1 & starting polling');
+    try {
+      await this.triggerBibleSlide();
+    } catch (err) {
+      console.warn('[BibleCtrl] Auto-trigger Bible slide error:', err);
+    }
+    this.startBibleSlidePolling();
+  }
+
+  /**
+   * Called automatically when leaving the Bible Option in UI.
+   * Completely stops active slide polling.
+   */
+  onLeaveBibleView() {
+    console.log('[BibleCtrl] Left Bible Option in UI -> Stopping slide polling');
+    this.stopBibleSlidePolling();
+  }
+
+  /**
+   * Triggers Slide 1 (index 0) of the Bible presentation in ProPresenter with quick-response pulse.
+   */
+  async triggerBibleSlide() {
+    const uuid = await this.getBiblePresentationUuid();
+    if (uuid && this.api) {
+      // 1. Primary trigger: Slide 1 (index 0) of the Bible presentation
+      await this.api.triggerSlide(uuid, 0);
+      console.log(`[BibleCtrl] Live verse sent -> Triggered Slide 1 of Bible file (${uuid}) in ProPresenter`);
+
+      // Update StateStore
+      if (this.store) {
+        this.store.setState({
+          activePresentationUuid: uuid,
+          activePresentation: { id: { uuid, name: 'Bible' } },
+          currentSlideIndex: 0
+        });
+      }
+
+      // 2. Micro-pulse retrigger: If Slide 1 is already live on screen, ProPresenter may ignore a duplicate trigger.
+      // Retriggering the active presentation after a short micro-delay (75ms) forces ProPresenter to instantly
+      // repaint the slide layer with the fresh RSS data rather than waiting for background poll cycles.
+      setTimeout(() => {
+        this.api.request('/v1/presentation/active/trigger').catch(() => {});
+      }, 75);
+    }
+  }
+
+  /**
+   * Starts active polling of the Bible file Slide 1 every 1 second while Bible option is accessible.
+   */
+  startBibleSlidePolling() {
+    this.stopBibleSlidePolling();
+
+    // Initial immediate poll
+    this.pollBibleSlide();
+
+    // Active polling every 1 second (1000ms)
+    this.bibleSlidePollInterval = setInterval(() => {
+      this.pollBibleSlide();
+    }, 1000);
+    console.log('[BibleCtrl] Bible slide polling started (every 1s)');
+  }
+
+  /**
+   * Stops active slide polling when leaving the Bible screen.
+   */
+  stopBibleSlidePolling() {
+    if (this.bibleSlidePollInterval) {
+      clearInterval(this.bibleSlidePollInterval);
+      this.bibleSlidePollInterval = null;
+      console.log('[BibleCtrl] Bible slide polling stopped');
+    }
+  }
+
+  /**
+   * Polls the live status of the Bible presentation slide from ProPresenter.
+   * Strictly isolates Bible section: ignores songs content and never captures song lyrics.
+   */
+  async pollBibleSlide() {
+    if (this._isPollingBibleSlide) return;
+    this._isPollingBibleSlide = true;
+    try {
+      if (!this.api) return;
+
+      // 1. Check currently active presentation in ProPresenter
+      const indexData = await this.api.getSlideIndex().catch(() => null);
+      const payload = indexData?.presentation_index || indexData;
+      const presId = payload?.presentation_id;
+      const presUuid = presId?.uuid || (typeof presId === 'string' ? presId : null);
+      const presName = presId?.name || '';
+      const isBibleActive = (presUuid === this.biblePresentationUuid) || (presName.toLowerCase() === 'bible');
+
+      if (isBibleActive) {
+        // ProPresenter is currently on the Bible presentation
+        const slideStatus = await this.api.getSlideStatus().catch(() => null);
+        if (slideStatus && slideStatus.current) {
+          const currentText = slideStatus.current.text || '';
+          if (this.liveBadge) {
+            if (this.activeLiveVerse) {
+              const displayLabel = `${this.activeLiveVerse.book_name} ${this.activeLiveVerse.chapter}:${this.activeLiveVerse.verse}`;
+              if (this.liveRefText) this.liveRefText.textContent = displayLabel;
+              this.liveBadge.title = `Bible Live Output (${displayLabel}):\n${currentText.substring(0, 150)}`;
+            } else {
+              if (this.liveRefText && (!this.liveRefText.textContent || this.liveRefText.textContent === 'Ready')) {
+                this.liveRefText.textContent = 'Bible Active';
+              }
+              this.liveBadge.title = `Bible Live Output:\n${currentText.substring(0, 150)}`;
+            }
+          }
+
+          if (this.store) {
+            this.store.setState({ slideStatus });
+          }
+        }
+
+        const idx = payload?.index !== undefined ? payload.index : 0;
+        if (this.store) {
+          this.store.setState({
+            currentSlideIndex: idx,
+            activePresentationUuid: this.biblePresentationUuid
+          });
+        }
+      } else {
+        // ProPresenter is currently on Songs or other documents:
+        // Do NOT capture song lyrics into the Bible section badge
+        if (this.liveBadge) {
+          if (this.activeLiveVerse) {
+            const displayLabel = `${this.activeLiveVerse.book_name} ${this.activeLiveVerse.chapter}:${this.activeLiveVerse.verse}`;
+            if (this.liveRefText) this.liveRefText.textContent = displayLabel;
+            this.liveBadge.title = `Bible RSS Ready: ${displayLabel}`;
+          } else {
+            if (this.liveRefText) this.liveRefText.textContent = 'Ready';
+            this.liveBadge.title = 'Bible Section: Ready to present scripture';
+          }
+        }
+      }
+    } catch (err) {
+      // Ignore background network blips
+    } finally {
+      this._isPollingBibleSlide = false;
     }
   }
 
@@ -811,11 +994,15 @@ class BibleController {
       document.querySelectorAll('#bibleTableBody tr').forEach(r => r.classList.remove('row-live'));
       document.querySelectorAll('.bible-history-pill').forEach(p => p.classList.remove('is-active'));
 
+      // Clear slide layer in ProPresenter
+      this.api?.clearLayer('slide').catch(() => {});
+
       // Sync clear to live RSS
       fetch('/api/bible/live', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'clear',
           version: 'TAM',
           book: '',
           book_name: '',

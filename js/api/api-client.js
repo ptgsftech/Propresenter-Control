@@ -138,11 +138,7 @@ class ApiClient {
    * @returns {Promise<null>}
    */
   async setAudienceScreenStatus(enabled) {
-    try {
-      return await this.request('/v1/status/audience_screens', { method: 'POST', body: Boolean(enabled) });
-    } catch (e) {
-      return await this.request('/v1/status/audience_screens', { method: 'PUT', body: Boolean(enabled) });
-    }
+    return this.request('/v1/status/audience_screens', { method: 'PUT', body: Boolean(enabled) });
   }
 
   /**
@@ -155,16 +151,11 @@ class ApiClient {
 
   /**
    * Enables or disables Stage screen output.
-   * Sends POST to /v1/status/stage_screens (falls back to PUT if required by endpoint).
    * @param {boolean} enabled - Output state.
    * @returns {Promise<null>}
    */
   async setStageScreenStatus(enabled) {
-    try {
-      return await this.request('/v1/status/stage_screens', { method: 'POST', body: Boolean(enabled) });
-    } catch (e) {
-      return await this.request('/v1/status/stage_screens', { method: 'PUT', body: Boolean(enabled) });
-    }
+    return this.request('/v1/status/stage_screens', { method: 'PUT', body: Boolean(enabled) });
   }
 
   /**

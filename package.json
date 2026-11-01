@@ -16,7 +16,7 @@
     "church-tech",
     "openapi"
   ],
-  "author": "",
+  "author": "PTGSF Tech",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
